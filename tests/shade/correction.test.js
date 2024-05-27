@@ -4,8 +4,10 @@ import { flatCurve, makeCurve } from '../../src/colour/reflectance.js';
 import {
   ACTIONS,
   DEFAULT_LIMITS,
+  RULES,
   addOnDose,
   decide,
+  readFacts,
   usesMachineTime,
 } from '../../src/shade/correction.js';
 
@@ -40,6 +42,7 @@ describe('a batch that passed', () => {
     expect(decide({ standard, batch: standard, verdict: 'pass' })).toEqual({
       action: 'accept',
       reason: 'the batch judged pass',
+      rule: 'already acceptable',
     });
     expect(decide({ standard, batch: standard, verdict: 'marginal' }).action).toBe('accept');
   });
@@ -167,5 +170,51 @@ describe('what the action costs', () => {
     expect(() => usesMachineTime('rewash')).toThrow(/must be one of accept/);
     expect(ACTIONS).toHaveLength(4);
     expect(DEFAULT_LIMITS.stripCount).toBe(2);
+  });
+});
+
+describe('the rules as a list', () => {
+  it('names every rule once', () => {
+    const names = RULES.map((rule) => rule.name);
+    expect(new Set(names).size).toBe(names.length);
+    expect(names[0]).toBe('already acceptable');
+  });
+
+  it('ends with a rule that always answers, so nothing falls off the end', () => {
+    expect(RULES.at(-1).when({})).toBe(true);
+  });
+
+  it('says which rule fired', () => {
+    const weak = makeLab(54.5, -14.2, 22.5);
+    expect(decide({ standard, batch: weak, verdict: 'fail', strength: 0.92 }).rule).toBe(
+      'weak enough to add on'
+    );
+    expect(decide({ standard, batch: weak, verdict: 'fail', strength: 0.4 }).rule).toBe(
+      'beyond correction'
+    );
+  });
+
+  it('works the facts out once and hands the same ones to every rule', () => {
+    const facts = readFacts({
+      standard,
+      batch: makeLab(54, -14.2, 22.6),
+      verdict: 'fail',
+      strength: 0.9,
+    });
+    expect(facts.hueOut).toBe(false);
+    expect(facts.priorCorrections).toBe(0);
+    expect(facts.limits.stripCount).toBe(2);
+    expect(facts.difference.dL).toBeCloseTo(1.9, 6);
+  });
+
+  it('takes the caller limits over the works ones without losing the rest', () => {
+    const facts = readFacts({
+      standard,
+      batch: standard,
+      verdict: 'fail',
+      limits: { hueLimit: 0.1 },
+    });
+    expect(facts.limits.hueLimit).toBe(0.1);
+    expect(facts.limits.addOnFloor).toBe(DEFAULT_LIMITS.addOnFloor);
   });
 });

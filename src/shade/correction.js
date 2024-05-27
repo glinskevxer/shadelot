@@ -40,55 +40,108 @@ export function addOnDose(recipeOwf, strength, { exhaustion = 0.7 } = {}) {
 }
 
 /**
- * Decide what happens to a batch. Everything the decision needs is passed in;
- * nothing is read from a global, because this gets called from a test harness
- * as often as from the floor.
+ * The rules, in the order they are read. The first one that answers decides,
+ * and each one gets the whole context so a later rule can never quietly undo an
+ * earlier one. Adding a rule means adding a row here rather than another branch
+ * inside a function nobody can hold in their head.
  */
-export function decide(context) {
+export const RULES = Object.freeze([
+  {
+    name: 'already acceptable',
+    when: ({ verdict }) => verdict === 'pass' || verdict === 'marginal',
+    then: ({ verdict }) => ({ action: 'accept', reason: `the batch judged ${verdict}` }),
+  },
+  {
+    name: 'hue out and corrected twice',
+    when: ({ hueOut, priorCorrections, limits }) => hueOut && priorCorrections >= limits.stripCount,
+    then: () => ({
+      action: 'downgrade',
+      reason: 'hue is out and the batch has been corrected twice',
+    }),
+  },
+  {
+    name: 'hue out',
+    when: ({ hueOut }) => hueOut,
+    then: () => ({
+      action: 'strip-and-redye',
+      reason: 'hue is out and adding dye cannot turn a shade',
+    }),
+  },
+  {
+    name: 'no strength reading',
+    when: ({ strength }) => strength === null,
+    then: () => ({
+      action: 'strip-and-redye',
+      reason: 'no strength reading, so nothing can be added safely',
+    }),
+  },
+  {
+    name: 'heavy',
+    when: ({ strength, limits }) => strength >= limits.addOnCeiling,
+    then: () => ({
+      action: 'downgrade',
+      reason: 'the batch is heavy, and dye cannot be taken back out',
+    }),
+  },
+  {
+    name: 'weak and corrected twice',
+    when: ({ strength, limits, priorCorrections }) =>
+      strength >= limits.addOnFloor && priorCorrections >= limits.stripCount,
+    then: () => ({
+      action: 'downgrade',
+      reason: 'two add ons have already been run on this batch',
+    }),
+  },
+  {
+    name: 'weak enough to add on',
+    when: ({ strength, limits }) => strength >= limits.addOnFloor,
+    then: ({ strength }) => ({
+      action: 'add-on',
+      reason: `the batch is ${Math.round((1 - strength) * 100)} percent weak`,
+    }),
+  },
+  {
+    name: 'too weak to add on',
+    when: ({ strength, limits }) => strength >= limits.stripFloor,
+    then: () => ({ action: 'strip-and-redye', reason: 'too weak for an add on to land level' }),
+  },
+  {
+    name: 'beyond correction',
+    when: () => true,
+    then: () => ({ action: 'downgrade', reason: 'the batch is too far off to be worth the water' }),
+  },
+]);
+
+/**
+ * Work the facts each rule reads out of the raw context once, so no rule has to
+ * recompute a difference or a strength and no two rules can disagree about one.
+ */
+export function readFacts(context) {
   const limits = { ...DEFAULT_LIMITS, ...(context.limits ?? {}) };
-  const { standard, batch, verdict, priorCorrections = 0 } = context;
-  if (!ACTIONS.includes('accept')) {
-    throw new FieldError('ACTIONS', 'is malformed', ACTIONS);
-  }
-  if (verdict === 'pass' || verdict === 'marginal') {
-    return { action: 'accept', reason: `the batch judged ${verdict}` };
-  }
-
-  const difference = lchDifference(standard, batch);
-  if (Math.abs(difference.dH) > limits.hueLimit) {
-    if (priorCorrections >= limits.stripCount) {
-      return { action: 'downgrade', reason: 'hue is out and the batch has been corrected twice' };
-    }
-    return { action: 'strip-and-redye', reason: 'hue is out and adding dye cannot turn a shade' };
-  }
-
+  const difference = lchDifference(context.standard, context.batch);
   const strength = optional(
     context.strength,
     (v) => requireInRange(v, 'strength', 0.01, 2),
     strengthFrom(context)
   );
-  if (strength === null) {
-    return {
-      action: 'strip-and-redye',
-      reason: 'no strength reading, so nothing can be added safely',
-    };
+  return {
+    ...context,
+    limits,
+    difference,
+    strength,
+    hueOut: Math.abs(difference.dH) > limits.hueLimit,
+    priorCorrections: context.priorCorrections ?? 0,
+  };
+}
+
+/** Decide what happens to a batch. The rule that fired comes back with it. */
+export function decide(context) {
+  const facts = readFacts(context);
+  const rule = RULES.find((candidate) => candidate.when(facts));
+  if (!rule) {
+    throw new FieldError('RULES', 'ended without a decision, which cannot happen', RULES.length);
   }
-  if (strength >= limits.addOnCeiling) {
-    return { action: 'downgrade', reason: 'the batch is heavy, and dye cannot be taken back out' };
-  }
-  if (strength >= limits.addOnFloor) {
-    if (priorCorrections >= limits.stripCount) {
-      return { action: 'downgrade', reason: 'two add ons have already been run on this batch' };
-    }
-    return {
-      action: 'add-on',
-      reason: `the batch is ${Math.round((1 - strength) * 100)} percent weak`,
-    };
-  }
-  if (strength >= limits.stripFloor) {
-    return { action: 'strip-and-redye', reason: 'too weak for an add on to land level' };
-  }
-  return { action: 'downgrade', reason: 'the batch is too far off to be worth the water' };
+  return { ...rule.then(facts), rule: rule.name };
 }
 
 function strengthFrom(context) {
