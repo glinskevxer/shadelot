@@ -1,0 +1,17 @@
+{
+  "id": "R25-00081",
+  "name": "Kestrel olive 4488",
+  "process": "exhaust",
+  "substrate": "cotton poplin 140gsm",
+  "liquorRatio": 8,
+  "dyes": [
+    { "code": "RY-145-ACME", "owf": 1.24 },
+    { "code": "RR-195-ACME", "owf": 0.31 },
+    { "code": "RB-19-ACME", "owf": 0.68 }
+  ],
+  "auxiliaries": [
+    { "code": "SEQ-2", "dose": 0.5 },
+    { "code": "WET-4", "dose": 1 },
+    { "code": "LEV-7", "dose": 0.8 }
+  ]
+}

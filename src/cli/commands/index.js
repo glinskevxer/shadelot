@@ -6,9 +6,10 @@
  * command walks the same list, so the two cannot drift.
  */
 
+import { registerCardCommand } from './card.js';
 import { registerCommandsCommand } from './commands-listing.js';
 
-const REGISTRARS = [registerCommandsCommand];
+const REGISTRARS = [registerCardCommand, registerCommandsCommand];
 
 export function registerCommands(program, context) {
   for (const register of REGISTRARS) {
