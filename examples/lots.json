@@ -1,0 +1,23 @@
+[
+  {
+    "id": "G25-00121",
+    "customer": "Kestrel Apparel",
+    "mass": 84.5,
+    "quality": "cotton poplin 140gsm",
+    "rolls": 4
+  },
+  {
+    "id": "G25-00122",
+    "customer": "Kestrel Apparel",
+    "mass": 61.2,
+    "quality": "cotton poplin 140gsm",
+    "rolls": 3
+  },
+  {
+    "id": "G25-00123",
+    "customer": "Kestrel Apparel",
+    "mass": 52.8,
+    "quality": "cotton poplin 140gsm",
+    "rolls": 2
+  }
+]

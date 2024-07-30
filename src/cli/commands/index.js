@@ -8,8 +8,9 @@
 
 import { registerCardCommand } from './card.js';
 import { registerCommandsCommand } from './commands-listing.js';
+import { registerPlanCommand } from './plan.js';
 
-const REGISTRARS = [registerCardCommand, registerCommandsCommand];
+const REGISTRARS = [registerCardCommand, registerCommandsCommand, registerPlanCommand];
 
 export function registerCommands(program, context) {
   for (const register of REGISTRARS) {
