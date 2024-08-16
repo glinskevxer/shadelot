@@ -8,12 +8,14 @@
 
 import { registerCardCommand } from './card.js';
 import { registerCommandsCommand } from './commands-listing.js';
+import { registerCorrectCommand } from './correct.js';
 import { registerPlanCommand } from './plan.js';
 import { registerShadeCommand } from './shade.js';
 
 const REGISTRARS = [
   registerCardCommand,
   registerCommandsCommand,
+  registerCorrectCommand,
   registerPlanCommand,
   registerShadeCommand,
 ];
