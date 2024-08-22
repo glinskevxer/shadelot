@@ -11,6 +11,7 @@ import { registerCommandsCommand } from './commands-listing.js';
 import { registerCorrectCommand } from './correct.js';
 import { registerPlanCommand } from './plan.js';
 import { registerShadeCommand } from './shade.js';
+import { registerSubstituteCommand } from './substitute.js';
 
 const REGISTRARS = [
   registerCardCommand,
@@ -18,6 +19,7 @@ const REGISTRARS = [
   registerCorrectCommand,
   registerPlanCommand,
   registerShadeCommand,
+  registerSubstituteCommand,
 ];
 
 export function registerCommands(program, context) {
