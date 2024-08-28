@@ -46,6 +46,12 @@ export function makeMachine(input) {
     (v) => requirePositive(v, 'machine.maxTemperature'),
     98
   );
+  const lossKwPerDegree = optional(
+    input.lossKwPerDegree,
+    (v) => requirePositive(v, 'machine.lossKwPerDegree'),
+    null
+  );
+  const motorKw = optional(input.motorKw, (v) => requirePositive(v, 'machine.motorKw'), null);
 
   return Object.freeze({
     id,
@@ -57,6 +63,8 @@ export function makeMachine(input) {
     ports,
     heatingKw,
     maxTemperature,
+    lossKwPerDegree,
+    motorKw,
     processes: Object.freeze([...TYPE_PROCESSES[type]]),
   });
 }

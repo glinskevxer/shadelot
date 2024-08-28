@@ -58,6 +58,18 @@ describe('making a machine', () => {
     expect(plain.ports).toBe(1);
     expect(plain.maxTemperature).toBe(98);
     expect(plain.heatingKw).toBeNull();
+    expect(plain.lossKwPerDegree).toBeNull();
+    expect(plain.motorKw).toBeNull();
+  });
+
+  it('keeps the measured loss and motor ratings the energy account reads', () => {
+    expect(
+      makeMachine({ ...jet, id: 'X', lossKwPerDegree: 0.05, motorKw: 18.5 }).lossKwPerDegree
+    ).toBe(0.05);
+    expect(makeMachine({ ...jet, id: 'X', lossKwPerDegree: 0.05, motorKw: 18.5 }).motorKw).toBe(
+      18.5
+    );
+    expect(() => makeMachine({ ...jet, id: 'X', motorKw: 0 })).toThrow(/motorKw/);
   });
 
   it('refuses a type nothing in the hall is', () => {

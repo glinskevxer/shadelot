@@ -1,0 +1,31 @@
+{
+  "id": "P-REACT-60",
+  "name": "reactive exhaust, medium depth, sixty degrees",
+  "startAt": 20,
+  "segments": [
+    { "kind": "fill", "label": "fill the bath", "minutes": 6, "litres": 1600 },
+    { "kind": "dose", "label": "sequestrant and wetter", "chemical": "SEQ-2", "minutes": 5 },
+    { "kind": "ramp", "label": "raise to sixty", "to": 60, "ratePerMinute": 2 },
+    {
+      "kind": "dose",
+      "label": "salt in four portions",
+      "chemical": "NACL-IND",
+      "minutes": 20,
+      "portions": 4
+    },
+    { "kind": "hold", "label": "run to exhaust", "at": 60, "minutes": 30 },
+    {
+      "kind": "dose",
+      "label": "alkali in three portions",
+      "chemical": "NA2CO3",
+      "minutes": 15,
+      "portions": 3
+    },
+    { "kind": "hold", "label": "fix", "at": 60, "minutes": 45 },
+    { "kind": "drain", "label": "drop the dye bath", "minutes": 8, "litres": 1600 },
+    { "kind": "fill", "label": "cold rinse", "minutes": 6, "litres": 1600 },
+    { "kind": "ramp", "label": "raise to soap", "to": 95, "ratePerMinute": 2.5 },
+    { "kind": "hold", "label": "soap off", "at": 95, "minutes": 15 },
+    { "kind": "drain", "label": "drop the soaping bath", "minutes": 8, "litres": 1600 }
+  ]
+}
