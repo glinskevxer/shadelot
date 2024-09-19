@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { createChemicalStore, makeChemical } from '../../src/chemical/catalogue.js';
 import {
+  LIMITS,
   PARAMETERS,
+  consentReport,
   batchLoad,
   checkConsent,
   headroom,
@@ -151,5 +153,57 @@ describe('headroom', () => {
   it('goes negative once a limit is past', () => {
     const room = headroom(consent, { volumeM3: 450, codKg: 200, tdsKg: 450, colourUnits: 30 });
     expect(room.volume).toBeCloseTo(-0.5, 9);
+  });
+});
+
+describe('the limit table', () => {
+  it('names one entry per parameter that is a ceiling', () => {
+    expect(LIMITS.map((entry) => entry.parameter)).toEqual(['volume', 'cod', 'tds', 'colour']);
+  });
+
+  it('is the same table the breach check and the headroom report walk', () => {
+    const day = { volumeM3: 150, codKg: 200, tdsKg: 450, colourUnits: 30 };
+    expect(Object.keys(headroom(consent, day))).toEqual(LIMITS.map((entry) => entry.parameter));
+  });
+
+  it('complains rather than reporting a breach when a consent is short of a limit', () => {
+    const partial = { ...consent, codKg: undefined };
+    const day = { volumeM3: 150, codKg: 200, tdsKg: 450, colourUnits: 30 };
+    expect(() => checkConsent(partial, day)).toThrow(/carries no limit for cod/);
+    expect(() => headroom(partial, day)).toThrow(/carries no limit for cod/);
+  });
+});
+
+describe('the compliance report', () => {
+  const day = { volumeM3: 150, codKg: 380, tdsKg: 450, colourUnits: 30 };
+
+  it('carries the consent name and the verdict', () => {
+    const report = consentReport(consent, day);
+    expect(report.consent).toBe('trade effluent consent 4471');
+    expect(report.compliant).toBe(true);
+  });
+
+  it('names the parameter closest to its limit', () => {
+    expect(consentReport(consent, day).tightest.parameter).toBe('cod');
+  });
+
+  it('ranks every parameter by how much of its limit is used', () => {
+    const ranked = consentReport(consent, day).ranked;
+    expect(ranked).toHaveLength(4);
+    for (let i = 1; i < ranked.length; i += 1) {
+      expect(ranked[i - 1].used).toBeGreaterThanOrEqual(ranked[i].used);
+    }
+  });
+
+  it('reports the breaches alongside the headroom rather than instead of it', () => {
+    const over = { ...day, codKg: 500 };
+    const report = consentReport(consent, over);
+    expect(report.compliant).toBe(false);
+    expect(report.breaches.map((b) => b.parameter)).toEqual(['cod']);
+    expect(report.headroom.cod).toBeLessThan(0);
+  });
+
+  it('passes a ph reading through to the check', () => {
+    expect(consentReport(consent, day, { ph: 11 }).compliant).toBe(false);
   });
 });

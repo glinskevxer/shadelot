@@ -94,18 +94,37 @@ export function totalDay(loads) {
   );
 }
 
+/**
+ * The four parameters that are limits rather than windows, each naming the key
+ * it reads on a day total and the key it reads on the consent. Both the breach
+ * check and the headroom report walk this one table, which is how they can no
+ * longer disagree about which parameters exist.
+ */
+export const LIMITS = Object.freeze([
+  { parameter: 'volume', dayKey: 'volumeM3', consentKey: 'volumeM3' },
+  { parameter: 'cod', dayKey: 'codKg', consentKey: 'codKg' },
+  { parameter: 'tds', dayKey: 'tdsKg', consentKey: 'tdsKg' },
+  { parameter: 'colour', dayKey: 'colourUnits', consentKey: 'colourUnits' },
+]);
+
+function limitFor(consent, entry) {
+  const limit = consent[entry.consentKey];
+  if (typeof limit !== 'number') {
+    throw new FieldError('consent', `carries no limit for ${entry.parameter}`, entry.parameter);
+  }
+  return limit;
+}
+
 /** Compare a day against the consent and name every parameter that breached. */
 export function checkConsent(consent, day, { ph } = {}) {
   const breaches = [];
-  const check = (parameter, value, limit) => {
+  for (const entry of LIMITS) {
+    const value = day[entry.dayKey];
+    const limit = limitFor(consent, entry);
     if (value > limit) {
-      breaches.push({ parameter, value, limit, over: value / limit - 1 });
+      breaches.push({ parameter: entry.parameter, value, limit, over: value / limit - 1 });
     }
-  };
-  check('volume', day.volumeM3, consent.volumeM3);
-  check('cod', day.codKg, consent.codKg);
-  check('tds', day.tdsKg, consent.tdsKg);
-  check('colour', day.colourUnits, consent.colourUnits);
+  }
   if (ph !== undefined) {
     requireNonNegative(ph, 'ph');
     if (ph < consent.phLow || ph > consent.phHigh) {
@@ -122,23 +141,30 @@ export function checkConsent(consent, day, { ph } = {}) {
 
 /** Headroom left on the day, as a share of each limit, for a planner to read. */
 export function headroom(consent, day) {
-  const parameters = { volume: 'volumeM3', cod: 'codKg', tds: 'tdsKg', colour: 'colourUnits' };
-  const out = {};
-  for (const [name, key] of Object.entries(parameters)) {
-    const limit =
-      consent[
-        key === 'volumeM3'
-          ? 'volumeM3'
-          : key === 'codKg'
-            ? 'codKg'
-            : key === 'tdsKg'
-              ? 'tdsKg'
-              : 'colourUnits'
-      ];
-    if (limit === undefined) {
-      throw new FieldError('consent', `carries no limit for ${name}`, name);
-    }
-    out[name] = 1 - day[key] / limit;
-  }
-  return out;
+  return Object.fromEntries(
+    LIMITS.map((entry) => [entry.parameter, 1 - day[entry.dayKey] / limitFor(consent, entry)])
+  );
+}
+
+/**
+ * Everything a compliance report carries for one day, in one call. The
+ * breaches and the headroom come off the same table so a parameter can never
+ * appear in one and not the other.
+ */
+export function consentReport(consent, day, options = {}) {
+  const check = checkConsent(consent, day, options);
+  const room = headroom(consent, day);
+  const tightest = LIMITS.map((entry) => ({
+    parameter: entry.parameter,
+    used: day[entry.dayKey] / limitFor(consent, entry),
+    headroom: room[entry.parameter],
+  })).sort((a, b) => b.used - a.used);
+  return {
+    consent: consent.name,
+    compliant: check.compliant,
+    breaches: check.breaches,
+    headroom: room,
+    tightest: tightest[0],
+    ranked: tightest,
+  };
 }
