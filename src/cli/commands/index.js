@@ -9,6 +9,7 @@
 import { registerCardCommand } from './card.js';
 import { registerCommandsCommand } from './commands-listing.js';
 import { registerCorrectCommand } from './correct.js';
+import { registerCostCommand } from './cost.js';
 import { registerPlanCommand } from './plan.js';
 import { registerRunSheetCommand } from './run-sheet.js';
 import { registerShadeCommand } from './shade.js';
@@ -18,6 +19,7 @@ const REGISTRARS = [
   registerCardCommand,
   registerCommandsCommand,
   registerCorrectCommand,
+  registerCostCommand,
   registerPlanCommand,
   registerRunSheetCommand,
   registerShadeCommand,
