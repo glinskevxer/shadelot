@@ -1,0 +1,29 @@
+[
+  {
+    "id": "B25-00301",
+    "water": { "net": 7200 },
+    "card": {
+      "lines": [
+        { "kind": "dye", "code": "RY-145-ACME", "kg": 2.48 },
+        { "kind": "dye", "code": "RR-195-ACME", "kg": 0.62 },
+        { "kind": "dye", "code": "RB-19-ACME", "kg": 1.36 },
+        { "kind": "electrolyte", "code": "NACL-IND", "kg": 80 },
+        { "kind": "electrolyte", "code": "NA2CO3", "kg": 19.2 },
+        { "kind": "auxiliary", "code": "WET-4", "kg": 2 },
+        { "kind": "auxiliary", "code": "SEQ-2", "kg": 0.8 }
+      ]
+    }
+  },
+  {
+    "id": "B25-00302",
+    "water": { "net": 5400 },
+    "card": {
+      "lines": [
+        { "kind": "dye", "code": "RB-19-ACME", "kg": 0.9 },
+        { "kind": "electrolyte", "code": "NACL-IND", "kg": 40 },
+        { "kind": "electrolyte", "code": "NA2CO3", "kg": 9.6 },
+        { "kind": "auxiliary", "code": "WET-4", "kg": 1.2 }
+      ]
+    }
+  }
+]

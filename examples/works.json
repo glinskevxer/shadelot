@@ -201,7 +201,7 @@
     "volumeM3": 300,
     "codKg": 400,
     "tdsKg": 900,
-    "colourUnits": 60,
+    "colourUnits": 250,
     "phLow": 6,
     "phHigh": 9
   }
