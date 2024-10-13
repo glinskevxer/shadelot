@@ -1,0 +1,61 @@
+[
+  {
+    "lotId": "S-24118",
+    "code": "RY-145-ACME",
+    "quantityKg": 25,
+    "pricePerKg": 21.4,
+    "receivedAt": "2025-01-14",
+    "strength": 100
+  },
+  {
+    "lotId": "S-24119",
+    "code": "RR-195-ACME",
+    "quantityKg": 10,
+    "pricePerKg": 27.8,
+    "receivedAt": "2025-01-14",
+    "strength": 99.2
+  },
+  {
+    "lotId": "S-24162",
+    "code": "RB-19-ACME",
+    "quantityKg": 25,
+    "pricePerKg": 24.5,
+    "receivedAt": "2025-02-03",
+    "strength": 101.4
+  },
+  {
+    "lotId": "S-24163",
+    "code": "NACL-IND",
+    "quantityKg": 1000,
+    "pricePerKg": 0.12,
+    "receivedAt": "2025-02-03"
+  },
+  {
+    "lotId": "S-24164",
+    "code": "NA2CO3",
+    "quantityKg": 400,
+    "pricePerKg": 0.42,
+    "receivedAt": "2025-02-03"
+  },
+  {
+    "lotId": "S-24180",
+    "code": "WET-4",
+    "quantityKg": 60,
+    "pricePerKg": 3.4,
+    "receivedAt": "2025-02-19"
+  },
+  {
+    "lotId": "S-24181",
+    "code": "SEQ-2",
+    "quantityKg": 40,
+    "pricePerKg": 3.9,
+    "receivedAt": "2025-02-19"
+  },
+  {
+    "lotId": "S-24182",
+    "code": "LEV-7",
+    "quantityKg": 20,
+    "pricePerKg": 5.2,
+    "receivedAt": "2025-02-19"
+  }
+]

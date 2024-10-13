@@ -1,0 +1,124 @@
+/**
+ * The stock command.
+ *
+ * Three things in one command because they are one question on the floor: what
+ * is on hand, what can this card be dispensed from, and what needs ordering. It
+ * never writes anything, so it can be run from a phone in the store without any
+ * risk of moving a number.
+ */
+
+import {
+  belowReorder,
+  createStock,
+  lotsFor,
+  onHand,
+  receiveLot,
+  valueOnHand,
+} from '../../inventory/stock.js';
+import { money, weight } from '../../report/format.js';
+import { render, renderRecord } from '../../report/table.js';
+import { CommandError, dataError } from '../exit.js';
+import { readArray, readObject } from '../io.js';
+
+const LOT_COLUMNS = [
+  { key: 'lotId', heading: 'lot' },
+  { key: 'code', heading: 'article' },
+  { key: 'remainingKg', heading: 'on hand', align: 'right', format: weight },
+  { key: 'pricePerKg', heading: 'price', align: 'right', format: (v) => money(v) },
+  { key: 'strength', heading: 'strength', align: 'right', format: (v) => v.toFixed(1) },
+  { key: 'receivedAt', heading: 'received' },
+];
+
+const SHORT_COLUMNS = [
+  { key: 'code', heading: 'article' },
+  { key: 'onHand', heading: 'on hand', align: 'right', format: weight },
+  { key: 'reorderPoint', heading: 'reorder at', align: 'right', format: weight },
+  { key: 'shortBy', heading: 'short by', align: 'right', format: weight },
+];
+
+const NEED_COLUMNS = [
+  { key: 'code', heading: 'article' },
+  { key: 'needKg', heading: 'card needs', align: 'right', format: weight },
+  { key: 'onHand', heading: 'on hand', align: 'right', format: weight },
+  { key: 'state', heading: 'state' },
+];
+
+function loadStock(rows) {
+  const stock = createStock();
+  rows.forEach((row, index) => {
+    try {
+      receiveLot(stock, row);
+    } catch (error) {
+      throw dataError(`stock row ${index} is not usable, ${error.message}`);
+    }
+  });
+  return stock;
+}
+
+export function registerStockCommand(program, { out }) {
+  program
+    .command('stock')
+    .description('show what is on hand, what a card needs and what is short')
+    .requiredOption('-s, --stock <path>', 'the stock lots file')
+    .option('-c, --card <path>', 'a dispensing card to check against')
+    .option('--reorder <path>', 'a file of reorder points')
+    .option('--code <article>', 'show only this article')
+    .option('--format <format>', 'table or json', 'table')
+    .action(async (options) => {
+      const stock = loadStock(await readArray(options.stock, { what: 'stock file' }));
+      const lots = stock.lots.filter(
+        (lot) => lot.remainingKg > 0 && (!options.code || lot.code === options.code)
+      );
+
+      const short = options.reorder
+        ? belowReorder(stock, await readObject(options.reorder, { what: 'reorder file' }))
+        : [];
+
+      let needs = [];
+      if (options.card) {
+        const card = await readObject(options.card, { what: 'card file' });
+        if (!Array.isArray(card.lines)) {
+          throw dataError('the card file must carry a lines array');
+        }
+        needs = card.lines.map((line) => {
+          const held = onHand(stock, line.code);
+          return {
+            code: line.code,
+            needKg: line.kg,
+            onHand: held,
+            state: held >= line.kg ? 'enough' : 'short',
+          };
+        });
+      }
+
+      if (options.format === 'json') {
+        out.write(JSON.stringify({ lots, short, needs, value: valueOnHand(stock) }, null, 2));
+      } else {
+        out.write(render(options.format, LOT_COLUMNS, lots));
+        out.write('');
+        out.write(
+          renderRecord([
+            ['lots', String(lots.length)],
+            ['value', money(valueOnHand(stock, options.code))],
+          ])
+        );
+        if (needs.length > 0) {
+          out.write('');
+          out.write(render(options.format, NEED_COLUMNS, needs));
+        }
+        if (short.length > 0) {
+          out.write('');
+          out.write(render(options.format, SHORT_COLUMNS, short));
+        }
+      }
+
+      if (needs.some((need) => need.state === 'short')) {
+        const names = needs.filter((need) => need.state === 'short').map((need) => need.code);
+        throw new CommandError(`not enough stock to dispense ${names.join(', ')}`, 'outOfStock');
+      }
+    });
+}
+
+export function openLots(stock, code) {
+  return lotsFor(stock, code);
+}
