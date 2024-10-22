@@ -1,30 +1,75 @@
 #!/usr/bin/env bash
 # A smoke test that runs the shipped entry point rather than importing anything.
-set -euo pipefail
+# It exists because every other check in this repo imports the source directly,
+# so a broken bin script or a broken export map would pass all of them.
+set -uo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$here"
 
-fail() {
-  echo "smoke: $1" >&2
-  exit 1
+failures=0
+
+check() {
+  local name="$1"
+  shift
+  if "$@" >/dev/null 2>&1; then
+    echo "  ok    $name"
+  else
+    echo "  FAIL  $name" >&2
+    failures=$((failures + 1))
+  fi
 }
 
-node bin/shadelot.js --version >/dev/null || fail "the version flag did not run"
-node bin/shadelot.js commands >/dev/null || fail "the command listing did not run"
-node bin/shadelot.js commands --format json | node -e '
+expect_code() {
+  local name="$1"
+  local want="$2"
+  shift 2
+  "$@" >/dev/null 2>&1
+  local got=$?
+  if [ "$got" -eq "$want" ]; then
+    echo "  ok    $name (exit $got)"
+  else
+    echo "  FAIL  $name wanted exit $want, got $got" >&2
+    failures=$((failures + 1))
+  fi
+}
+
+echo "smoke: the entry point"
+check "version" node bin/shadelot.js --version
+check "help" node bin/shadelot.js --help
+check "command listing" node bin/shadelot.js commands
+
+echo "smoke: the shipped examples"
+check "card" node bin/shadelot.js card -w examples/works.json -r examples/recipe-olive.json -l 200
+check "plan" node bin/shadelot.js plan -w examples/works.json -r examples/recipe-olive.json -g examples/lots.json -m JET-4
+check "run sheet" node bin/shadelot.js run-sheet -p examples/profile-reactive-60.json
+check "stock" node bin/shadelot.js stock -s examples/stock.json --reorder examples/reorder-points.json
+check "substitute" node bin/shadelot.js substitute -w examples/works.json -c RB-19-ACME
+check "effluent" node bin/shadelot.js effluent -w examples/works.json -d examples/day-batches.json
+check "cost" node bin/shadelot.js cost -w examples/works.json -r examples/recipe-olive.json -m JET-4 -l 200
+
+echo "smoke: the exit codes are the interface"
+expect_code "unknown command is a usage error" 2 node bin/shadelot.js nonsense
+expect_code "a missing file is not found" 3 node bin/shadelot.js card -w /nope.json -r examples/recipe-olive.json -l 200
+expect_code "a bad load is invalid data" 4 node bin/shadelot.js card -w examples/works.json -r examples/recipe-olive.json -l 0
+
+echo "smoke: the listing is machine readable"
+if ! node bin/shadelot.js commands --format json | node -e '
   let text = "";
   process.stdin.on("data", (chunk) => (text += chunk));
   process.stdin.on("end", () => {
     const rows = JSON.parse(text);
-    if (!Array.isArray(rows) || rows.length === 0) {
-      console.error("the listing came back empty");
-      process.exit(1);
-    }
+    if (!Array.isArray(rows) || rows.length === 0) process.exit(1);
+    if (rows.some((row) => !row.description || row.description.length < 6)) process.exit(1);
   });
-' || fail "the json listing was not usable"
-
-if node bin/shadelot.js nonsense >/dev/null 2>&1; then
-  fail "an unknown command should not succeed"
+'; then
+  echo "  FAIL  the json listing was not usable" >&2
+  failures=$((failures + 1))
+else
+  echo "  ok    json listing"
 fi
 
+if [ "$failures" -ne 0 ]; then
+  echo "smoke: $failures check(s) failed" >&2
+  exit 1
+fi
 echo "smoke: ok"

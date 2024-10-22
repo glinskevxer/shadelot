@@ -1,0 +1,67 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: lint and format on node ${{ matrix.node }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20.18.2', '22.13.1']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+
+  test:
+    name: test on node ${{ matrix.node }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20.18.2', '22.13.1']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - run: npm test
+
+  smoke:
+    name: command line smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.18.2'
+          cache: npm
+      - run: npm ci
+      - run: npm run smoke
+      - name: the examples the readme shows still run
+        run: |
+          node bin/shadelot.js card -w examples/works.json -r examples/recipe-olive.json -l 200
+          node bin/shadelot.js plan -w examples/works.json -r examples/recipe-olive.json -g examples/lots.json -m JET-4
+          node bin/shadelot.js run-sheet -p examples/profile-reactive-60.json
+          node bin/shadelot.js stock -s examples/stock.json --reorder examples/reorder-points.json
+          node bin/shadelot.js commands
