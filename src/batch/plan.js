@@ -17,6 +17,7 @@ import {
 } from '../valid/guards.js';
 import { bathVolume, liquorRatioAt } from '../machine/register.js';
 import { buildCard } from '../recipe/card.js';
+import { append } from '../audit/trail.js';
 
 export const FIT_REASONS = ['below-minimum', 'above-maximum', 'wrong-process', 'ok'];
 
@@ -79,7 +80,33 @@ export function planBatch(input, context) {
     0.05
   );
   const drift = ratioDrift(machine, recipe, fibreKg);
-  const dosed = Math.abs(drift) > tolerance ? redoseForRatio(recipe, actualRatio) : recipe;
+  const redosed = Math.abs(drift) > tolerance;
+  const dosed = redosed ? redoseForRatio(recipe, actualRatio) : recipe;
+  const card = buildCard(dosed, fibreKg, context);
+
+  if (context.trail) {
+    append(context.trail, 'batch-planned', {
+      subject: id,
+      inputs: {
+        machine: machine.id,
+        recipe: recipe.id,
+        load: fibreKg.toFixed(1),
+        lots: lots.length,
+      },
+      outcome: `${litresOf(machine, fibreKg)} litres at ${actualRatio.toFixed(2)} to 1`,
+    });
+    if (redosed) {
+      append(context.trail, 'recipe-redosed', {
+        subject: id,
+        inputs: { plannedRatio: recipe.liquorRatio, actualRatio: actualRatio.toFixed(2) },
+        outcome: 'the grams per litre lines were scaled to hold the same mass in the bath',
+      });
+    }
+    append(context.trail, 'card-issued', {
+      subject: id,
+      inputs: { lines: card.lines.length, dyeKg: card.dyeKg.toFixed(3) },
+    });
+  }
 
   return Object.freeze({
     id,
@@ -91,9 +118,13 @@ export function planBatch(input, context) {
     plannedRatio: recipe.liquorRatio,
     actualRatio,
     ratioDrift: drift,
-    redosed: dosed !== recipe,
-    card: buildCard(dosed, fibreKg, context),
+    redosed,
+    card,
   });
+}
+
+function litresOf(machine, fibreKg) {
+  return bathVolume(machine, fibreKg).toFixed(0);
 }
 
 /** Fill factor, which is the number the planner is judged on at the end of a week. */

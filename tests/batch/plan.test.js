@@ -3,6 +3,7 @@ import { createCatalogue, makeDyestuff } from '../../src/dyestuff/catalogue.js';
 import { createChemicalStore, makeChemical } from '../../src/chemical/catalogue.js';
 import { makeRecipe } from '../../src/recipe/recipe.js';
 import { makeMachine } from '../../src/machine/register.js';
+import { createTrail, forSubject, verify } from '../../src/audit/trail.js';
 import {
   FIT_REASONS,
   assessFit,
@@ -175,5 +176,60 @@ describe('fill factor', () => {
   it('is the load against what the machine could take', () => {
     expect(fillFactor(jet, 300)).toBe(1);
     expect(fillFactor(jet, 150)).toBe(0.5);
+  });
+});
+
+describe('the audit trail', () => {
+  it('records nothing when no trail is passed', () => {
+    const batch = planBatch(
+      { id: 'B25-00401', machine: jet, recipe, lots: [lot('G1', 200)] },
+      context
+    );
+    expect(batch.id).toBe('B25-00401');
+  });
+
+  it('records the plan and the card when one is', () => {
+    const trail = createTrail({ clock: () => '2025-04-01T08:00:00Z' });
+    planBatch(
+      { id: 'B25-00402', machine: jet, recipe, lots: [lot('G1', 200)] },
+      { ...context, trail }
+    );
+    expect(forSubject(trail, 'B25-00402').map((entry) => entry.event)).toEqual([
+      'batch-planned',
+      'card-issued',
+    ]);
+  });
+
+  it('records the re-dose as its own entry, with the two ratios on it', () => {
+    const trail = createTrail({ clock: () => '2025-04-01T08:00:00Z' });
+    planBatch(
+      { id: 'B25-00403', machine: jet, recipe, lots: [lot('G1', 100)] },
+      { ...context, trail }
+    );
+    const redose = forSubject(trail, 'B25-00403').find((entry) => entry.event === 'recipe-redosed');
+    expect(redose).toBeDefined();
+    expect(redose.inputs.plannedRatio).toBe(8);
+    expect(Number(redose.inputs.actualRatio)).toBeGreaterThan(8);
+  });
+
+  it('names the machine and the lot count on the plan entry', () => {
+    const trail = createTrail({ clock: () => '2025-04-01T08:00:00Z' });
+    planBatch(
+      { id: 'B25-00404', machine: jet, recipe, lots: [lot('G1', 120), lot('G2', 80)] },
+      { ...context, trail }
+    );
+    const planned = forSubject(trail, 'B25-00404')[0];
+    expect(planned.inputs.machine).toBe('JET-4');
+    expect(planned.inputs.lots).toBe(2);
+    expect(planned.outcome).toMatch(/litres at/);
+  });
+
+  it('leaves the trail intact after a run of batches', () => {
+    const trail = createTrail({ clock: () => '2025-04-01T08:00:00Z' });
+    for (const id of ['B1', 'B2', 'B3']) {
+      planBatch({ id, machine: jet, recipe, lots: [lot('G1', 200)] }, { ...context, trail });
+    }
+    expect(verify(trail).intact).toBe(true);
+    expect(trail.entries).toHaveLength(6);
   });
 });
