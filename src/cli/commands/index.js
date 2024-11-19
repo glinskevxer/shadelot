@@ -13,6 +13,7 @@ import { registerCostCommand } from './cost.js';
 import { registerEffluentCommand } from './effluent.js';
 import { registerPlanCommand } from './plan.js';
 import { registerRunSheetCommand } from './run-sheet.js';
+import { registerSequenceCommand } from './sequence.js';
 import { registerShadeCommand } from './shade.js';
 import { registerStockCommand } from './stock.js';
 import { registerSubstituteCommand } from './substitute.js';
@@ -25,6 +26,7 @@ const REGISTRARS = [
   registerEffluentCommand,
   registerPlanCommand,
   registerRunSheetCommand,
+  registerSequenceCommand,
   registerShadeCommand,
   registerStockCommand,
   registerSubstituteCommand,

@@ -1,0 +1,14 @@
+[
+  {
+    "id": "B25-00311",
+    "depth": 4.8,
+    "dyeClass": "reactive",
+    "runMinutes": 220,
+    "dueAt": "2025-05-14"
+  },
+  { "id": "B25-00312", "depth": 0.42, "dyeClass": "reactive", "runMinutes": 165 },
+  { "id": "B25-00313", "depth": 1.85, "dyeClass": "reactive", "runMinutes": 195 },
+  { "id": "B25-00314", "depth": 0.9, "dyeClass": "disperse", "runMinutes": 240 },
+  { "id": "B25-00315", "depth": 2.6, "dyeClass": "disperse", "runMinutes": 250 },
+  { "id": "B25-00316", "depth": 0.75, "dyeClass": "reactive", "runMinutes": 170 }
+]
