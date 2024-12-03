@@ -1,0 +1,106 @@
+# shadelot
+
+Batch, recipe and shade control for a commission textile dyehouse.
+
+The works takes greige cloth in, forms it into dye lots, runs those lots on jets,
+winches, jigs and a pad mangle, and sends back finished cloth that has to match a
+standard the customer sent. This program does the arithmetic in between, which is
+mostly about three things: what to weigh out, what the machine will really do
+with it, and whether what came out is close enough to ship.
+
+Nothing here talks to a machine controller. It produces the numbers that go on
+the card the operator carries.
+
+## Running it
+
+```
+npm install
+npm test
+node bin/shadelot.js commands
+```
+
+Every command takes its inputs as json files rather than as flags, because a
+recipe has thirty numbers in it. The `examples/` folder holds a working set:
+
+```
+node bin/shadelot.js card -w examples/works.json -r examples/recipe-olive.json -l 200
+node bin/shadelot.js plan -w examples/works.json -r examples/recipe-olive.json -g examples/lots.json -m JET-4
+node bin/shadelot.js run-sheet -p examples/profile-reactive-60.json -w examples/works.json -m JET-4
+node bin/shadelot.js sequence -d examples/day-sequence.json
+node bin/shadelot.js effluent -w examples/works.json -d examples/day-batches.json
+node bin/shadelot.js works -w examples/works.json
+```
+
+## The works file
+
+One file describes the plant: the dyes it stocks, the chemicals and how each one
+is dosed, the machines with their load bands and dead volumes, the named
+tolerance blocks, the utility tariff and the discharge consent. Every command
+reads it, so a machine added once is added everywhere. `shadelot works` prints
+what a given file actually says, which answers most questions faster than reading
+the json.
+
+## The parts of it
+
+| area            | what it holds                                                           |
+| --------------- | ----------------------------------------------------------------------- |
+| `src/measure`   | units, roll geometry, and rounding to a balance the dispensary owns     |
+| `src/greige`    | rolls, lot forming, the goods inwards register, shrinkage allowances    |
+| `src/dyestuff`  | the catalogue, strengths, and grading a substitution                    |
+| `src/chemical`  | auxiliaries and the basis each is dosed on                              |
+| `src/recipe`    | recipes, depth bands, the dispensing card, the recipe library           |
+| `src/machine`   | the machine register and its availability calendar                      |
+| `src/batch`     | putting lots on a machine and re-dosing for the ratio it gives          |
+| `src/process`   | dyeing profiles, exhaustion and fixation, pad batch                     |
+| `src/colour`    | Lab, four difference formulae, tolerance blocks, reflectance, whiteness |
+| `src/labdip`    | lab dip submissions and the library of past ones                        |
+| `src/shade`     | the correction decision and shade continuity across an order            |
+| `src/schedule`  | ordering a day light to dark and costing the changeovers                |
+| `src/utility`   | water and energy accounting                                             |
+| `src/cost`      | costing a batch per saleable kilogram                                   |
+| `src/effluent`  | the daily load against the discharge consent                            |
+| `src/inventory` | dyestuff and chemical stock, held in lots                               |
+| `src/quality`   | four point defect grading                                               |
+| `src/order`     | customer orders and deliveries                                          |
+| `src/invoice`   | rate cards and invoicing                                                |
+| `src/analysis`  | the month, and splitting a variance                                     |
+| `src/audit`     | the append only trail                                                   |
+| `src/store`     | the json file and the repository over it                                |
+| `src/report`    | number formatting and table rendering                                   |
+| `src/cli`       | the command line                                                        |
+
+## A few decisions worth knowing about
+
+**The card is scaled before it is rounded.** Rounding a percentage means nothing.
+The old spreadsheet did it the other way round and the cards were wrong on every
+small load.
+
+**Grams per litre and percent on weight are not interchangeable.** One scales
+with the cloth and the other with the bath, so a batch moved to a machine that
+gives a different liquor ratio has to have its grams per litre lines re-dosed.
+`shadelot plan` says on its face when it has done that.
+
+**A tolerance is a block, not one number.** A whole unit of hue inside a one unit
+total is a visible miss. Every axis is checked as well as the total.
+
+**An order is judged twice.** Against the customer standard, and against the
+first batch that was accepted on it, under a tighter limit. Six batches each half
+a unit off the standard in six directions all pass the first test and make an
+unwearable garment.
+
+**Exit codes are an interface.** A works runs this out of cron. The codes are
+pinned in `src/cli/exit.js` and the message text is not.
+
+## Testing
+
+```
+npm run check
+```
+
+runs lint, the format check, the whole suite and the smoke test. The smoke test
+drives the shipped binary rather than importing the source, because everything
+else imports the source and would not notice a broken entry point.
+
+`tests/integration/a-week-in-the-dyehouse.test.js` runs a week through the
+modules in the order the floor runs them. It is there for the failures that only
+appear where two modules meet.

@@ -17,6 +17,7 @@ import { registerSequenceCommand } from './sequence.js';
 import { registerShadeCommand } from './shade.js';
 import { registerStockCommand } from './stock.js';
 import { registerSubstituteCommand } from './substitute.js';
+import { registerWorksCommand } from './works.js';
 
 const REGISTRARS = [
   registerCardCommand,
@@ -30,6 +31,7 @@ const REGISTRARS = [
   registerShadeCommand,
   registerStockCommand,
   registerSubstituteCommand,
+  registerWorksCommand,
 ];
 
 export function registerCommands(program, context) {
