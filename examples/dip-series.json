@@ -1,0 +1,31 @@
+{
+  "id": "L25-00044",
+  "customer": "Kestrel Apparel",
+  "standardName": "olive 4488",
+  "substrate": "cotton poplin 140gsm",
+  "formula": "cmc",
+  "total": 1,
+  "standard": { "L": 52.14, "a": -14.32, "b": 22.68 },
+  "dips": [
+    {
+      "recipeId": "R25-00081a",
+      "reading": { "L": 54.9, "a": -13.1, "b": 21.4 },
+      "note": "first pass, too light"
+    },
+    {
+      "recipeId": "R25-00081b",
+      "reading": { "L": 53.2, "a": -13.9, "b": 22.1 },
+      "note": "raised the blue"
+    },
+    {
+      "recipeId": "R25-00081c",
+      "reading": { "L": 52.4, "a": -14.2, "b": 22.6 },
+      "note": "small yellow trim"
+    },
+    {
+      "recipeId": "R25-00081d",
+      "reading": { "L": 52.2, "a": -14.3, "b": 22.7 },
+      "note": "sent for approval"
+    }
+  ]
+}
