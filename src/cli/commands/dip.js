@@ -7,7 +7,6 @@
  * and typing them twice is how a shade room loses an afternoon.
  */
 
-import { makeLab } from '../../colour/lab.js';
 import { makeTolerance } from '../../colour/tolerance.js';
 import {
   addDip,
@@ -21,6 +20,7 @@ import { signed } from '../../report/format.js';
 import { render, renderRecord } from '../../report/table.js';
 import { CommandError, dataError } from '../exit.js';
 import { readObject } from '../io.js';
+import { toReading as reading } from '../readings.js';
 import { loadWorks, toleranceNamed } from '../works.js';
 
 const COLUMNS = [
@@ -33,18 +33,6 @@ const COLUMNS = [
   { key: 'verdict', heading: 'verdict' },
   { key: 'note', heading: 'note', width: 30 },
 ];
-
-function reading(value, what) {
-  if (
-    !value ||
-    typeof value.L !== 'number' ||
-    typeof value.a !== 'number' ||
-    typeof value.b !== 'number'
-  ) {
-    throw dataError(`the ${what} must carry L, a and b as numbers`);
-  }
-  return makeLab(value.L, value.a, value.b);
-}
 
 export function registerDipCommand(program, { out }) {
   program

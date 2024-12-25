@@ -80,7 +80,7 @@ describe('the shade command', () => {
     const io = capture();
     const bad = await readingFile('bad.json', { L: 52, a: -14 });
     expect(await run(['shade', '-s', standard, '-b', bad], io)).toBe(4);
-    expect(io.err.text()).toMatch(/must carry L, a and b/);
+    expect(io.err.text()).toMatch(/missing a usable b/);
   });
 
   it('prints json carrying the axes and the breaches', async () => {

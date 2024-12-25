@@ -6,13 +6,12 @@
  * disagrees with the answer needs to know which rule to argue about.
  */
 
-import { makeLab } from '../../colour/lab.js';
 import { judge, makeTolerance } from '../../colour/tolerance.js';
 import { ACTIONS, addOnDose, decide, readFacts, usesMachineTime } from '../../shade/correction.js';
 import { percent, signed, weight } from '../../report/format.js';
 import { render, renderRecord } from '../../report/table.js';
-import { dataError } from '../exit.js';
 import { numberFlag, readObject } from '../io.js';
+import { toReading as reading } from '../readings.js';
 import { loadWorks, toleranceNamed } from '../works.js';
 
 const DOSE_COLUMNS = [
@@ -21,13 +20,6 @@ const DOSE_COLUMNS = [
   { key: 'addOwf', heading: 'add owf', align: 'right', format: (v) => v.toFixed(4) },
   { key: 'addKg', heading: 'add kg', align: 'right', format: weight },
 ];
-
-function reading(document, what) {
-  if (!document || typeof document.L !== 'number') {
-    throw dataError(`the ${what} must carry L, a and b as numbers`);
-  }
-  return makeLab(document.L, document.a, document.b);
-}
 
 export function registerCorrectCommand(program, { out }) {
   program

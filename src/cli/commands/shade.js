@@ -14,6 +14,7 @@ import { signed } from '../../report/format.js';
 import { render, renderRecord } from '../../report/table.js';
 import { EXIT, CommandError, dataError } from '../exit.js';
 import { numberFlag, readObject } from '../io.js';
+import { toReading } from '../readings.js';
 import { loadWorks, toleranceNamed } from '../works.js';
 
 const AXIS_COLUMNS = [
@@ -28,18 +29,6 @@ const AXIS_COLUMNS = [
   { key: 'state', heading: 'state' },
 ];
 
-function requireReading(value, what) {
-  if (
-    !value ||
-    typeof value.L !== 'number' ||
-    typeof value.a !== 'number' ||
-    typeof value.b !== 'number'
-  ) {
-    throw dataError(`the ${what} must carry L, a and b as numbers`);
-  }
-  return value;
-}
-
 export function registerShadeCommand(program, { out }) {
   program
     .command('shade')
@@ -52,11 +41,11 @@ export function registerShadeCommand(program, { out }) {
     .option('--total <units>', 'total tolerance when no block is named', numberFlag('--total'), 1)
     .option('--format <format>', 'table or json', 'table')
     .action(async (options) => {
-      const standard = requireReading(
+      const standard = toReading(
         await readObject(options.standard, { what: 'standard' }),
         'standard'
       );
-      const batch = requireReading(
+      const batch = toReading(
         await readObject(options.batch, { what: 'batch reading' }),
         'batch reading'
       );
