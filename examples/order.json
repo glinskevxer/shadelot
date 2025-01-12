@@ -1,0 +1,31 @@
+{
+  "id": "O25-0900",
+  "customer": "Kestrel Apparel",
+  "quality": "cotton poplin 140gsm",
+  "shade": "olive 4488",
+  "metres": 6000,
+  "dueAt": "2025-05-16",
+  "tolerancePercent": 3,
+  "continuityLimit": 0.6,
+  "standard": { "L": 52.14, "a": -14.32, "b": 22.68 },
+  "deliveries": [
+    {
+      "batchId": "B25-00301",
+      "metres": 1480,
+      "at": "2025-04-28",
+      "reading": { "L": 52.2, "a": -14.3, "b": 22.7 }
+    },
+    {
+      "batchId": "B25-00302",
+      "metres": 1512,
+      "at": "2025-04-30",
+      "reading": { "L": 52.35, "a": -14.28, "b": 22.62 }
+    },
+    {
+      "batchId": "B25-00303",
+      "metres": 1495,
+      "at": "2025-05-02",
+      "reading": { "L": 52.08, "a": -14.35, "b": 22.75 }
+    }
+  ]
+}
