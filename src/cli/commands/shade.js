@@ -12,10 +12,10 @@ import { formulaNames } from '../../colour/deltae.js';
 import { judge, makeTolerance } from '../../colour/tolerance.js';
 import { signed } from '../../report/format.js';
 import { render, renderRecord } from '../../report/table.js';
-import { EXIT, CommandError, dataError } from '../exit.js';
+import { EXIT, CommandError } from '../exit.js';
 import { numberFlag, readObject } from '../io.js';
 import { toReading } from '../readings.js';
-import { loadWorks, toleranceNamed } from '../works.js';
+import { resolveTolerance } from '../works.js';
 
 const AXIS_COLUMNS = [
   { key: 'axis', heading: 'axis' },
@@ -50,19 +50,14 @@ export function registerShadeCommand(program, { out }) {
         'batch reading'
       );
 
-      let block;
-      if (options.tolerance) {
-        if (!options.works) {
-          throw dataError('a named tolerance needs the works file it lives in');
-        }
-        block = toleranceNamed(await loadWorks(options.works), options.tolerance);
-      } else {
-        block = makeTolerance({
+      const { block } = await resolveTolerance(
+        options,
+        makeTolerance({
           name: 'given on the command line',
           formula: options.formula,
           total: options.total,
-        });
-      }
+        })
+      );
 
       const result = judge(block, standard, batch);
       const rows = ['dL', 'dC', 'dH'].map((axis) => {

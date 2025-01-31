@@ -20,7 +20,7 @@ import { render, renderRecord } from '../../report/table.js';
 import { CommandError, dataError } from '../exit.js';
 import { readObject } from '../io.js';
 import { toReading } from '../readings.js';
-import { loadWorks, toleranceNamed } from '../works.js';
+import { resolveTolerance } from '../works.js';
 
 const COLUMNS = [
   { key: 'batchId', heading: 'batch' },
@@ -45,9 +45,10 @@ export function registerOrderCommand(program, { out }) {
     .option('--format <format>', 'table or json', 'table')
     .action(async (options) => {
       const document = await readObject(options.order, { what: 'order file' });
-      const block = options.tolerance
-        ? toleranceNamed(await loadWorks(requireWorks(options)), options.tolerance)
-        : makeTolerance({ name: 'works default', formula: 'cmc', total: 1 });
+      const { block } = await resolveTolerance(
+        options,
+        makeTolerance({ name: 'works default', formula: 'cmc', total: 1 })
+      );
 
       const order = makeOrder({
         id: document.id,
@@ -127,11 +128,4 @@ export function registerOrderCommand(program, { out }) {
         );
       }
     });
-}
-
-function requireWorks(options) {
-  if (!options.works) {
-    throw dataError('a named tolerance needs the works file it lives in');
-  }
-  return options.works;
 }

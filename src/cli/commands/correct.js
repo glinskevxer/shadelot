@@ -12,7 +12,7 @@ import { percent, signed, weight } from '../../report/format.js';
 import { render, renderRecord } from '../../report/table.js';
 import { numberFlag, readObject } from '../io.js';
 import { toReading as reading } from '../readings.js';
-import { loadWorks, toleranceNamed } from '../works.js';
+import { resolveTolerance } from '../works.js';
 
 const DOSE_COLUMNS = [
   { key: 'code', heading: 'article' },
@@ -49,10 +49,10 @@ export function registerCorrectCommand(program, { out }) {
         await readObject(options.batch, { what: 'batch reading' }),
         'batch reading'
       );
-      const works = options.works ? await loadWorks(options.works) : null;
-      const block = options.tolerance
-        ? toleranceNamed(works, options.tolerance)
-        : makeTolerance({ name: 'works default', formula: 'cmc', total: 1 });
+      const { block } = await resolveTolerance(
+        options,
+        makeTolerance({ name: 'works default', formula: 'cmc', total: 1 })
+      );
 
       const verdict = judge(block, standard, batch);
       const context = {

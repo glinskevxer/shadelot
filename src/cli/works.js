@@ -74,3 +74,30 @@ export function toleranceNamed(works, name) {
   }
   return block;
 }
+
+/**
+ * Resolve the tolerance a command should judge under.
+ *
+ * Four commands were each carrying a copy of this, one of which loaded the
+ * works file twice and one of which said "usage" where the other three said
+ * "invalid data" for the identical mistake. The exit code is an interface, so
+ * that one mattered.
+ */
+export async function resolveTolerance(options, fallback) {
+  if (!options.tolerance) {
+    return { block: fallback, works: null };
+  }
+  if (!options.works) {
+    throw dataError('a named tolerance needs the works file it lives in');
+  }
+  const works = await loadWorks(options.works);
+  return { block: toleranceNamed(works, options.tolerance), works };
+}
+
+/** Load the works file only when a command actually needs it. */
+export async function worksIfNamed(options, { because }) {
+  if (!options.works) {
+    throw dataError(`${because} needs the works file it lives in`);
+  }
+  return loadWorks(options.works);
+}

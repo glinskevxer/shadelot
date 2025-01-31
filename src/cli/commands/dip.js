@@ -21,7 +21,7 @@ import { render, renderRecord } from '../../report/table.js';
 import { CommandError, dataError } from '../exit.js';
 import { readObject } from '../io.js';
 import { toReading as reading } from '../readings.js';
-import { loadWorks, toleranceNamed } from '../works.js';
+import { resolveTolerance } from '../works.js';
 
 const COLUMNS = [
   { key: 'round', heading: 'round', align: 'right', format: (v) => String(v) },
@@ -48,13 +48,14 @@ export function registerDipCommand(program, { out }) {
       if (!Array.isArray(document.dips) || document.dips.length === 0) {
         throw dataError('the dip series must carry a dips array with at least one reading');
       }
-      const block = options.tolerance
-        ? toleranceNamed(await loadWorks(requireWorks(options)), options.tolerance)
-        : makeTolerance({
-            name: document.toleranceName ?? 'works default',
-            formula: document.formula ?? 'cmc',
-            total: document.total ?? 1,
-          });
+      const { block } = await resolveTolerance(
+        options,
+        makeTolerance({
+          name: document.toleranceName ?? 'works default',
+          formula: document.formula ?? 'cmc',
+          total: document.total ?? 1,
+        })
+      );
 
       const submission = makeSubmission({
         id: document.id ?? 'L00-00000',
@@ -113,11 +114,4 @@ export function registerDipCommand(program, { out }) {
         throw new CommandError('no dip in the series is inside the tolerance', 'outOfTolerance');
       }
     });
-}
-
-function requireWorks(options) {
-  if (!options.works) {
-    throw dataError('a named tolerance needs the works file it lives in');
-  }
-  return options.works;
 }

@@ -19,7 +19,7 @@ import { render, renderRecord } from '../../report/table.js';
 import { CommandError } from '../exit.js';
 import { numberFlag, readObject } from '../io.js';
 import { toReadingSet } from '../readings.js';
-import { loadWorks, toleranceNamed } from '../works.js';
+import { resolveTolerance } from '../works.js';
 
 const COLUMNS = [
   { key: 'illuminant', heading: 'lamp' },
@@ -54,9 +54,10 @@ export function registerMetamerismCommand(program, { out }) {
         await readObject(options.batch, { what: 'batch reading' }),
         'batch reading'
       );
-      const block = options.tolerance
-        ? toleranceNamed(await loadWorks(options.works), options.tolerance)
-        : makeTolerance({ name: 'works default', formula: 'cmc', total: 1 });
+      const { block } = await resolveTolerance(
+        options,
+        makeTolerance({ name: 'works default', formula: 'cmc', total: 1 })
+      );
 
       const index = metamerismIndex(standard, batch, {
         primary: options.primary,

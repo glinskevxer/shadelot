@@ -2,8 +2,15 @@ import { mkdtemp, writeFile } from 'node:fs/promises';
 import { readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { assembleWorks, loadWorks, toleranceNamed } from '../../src/cli/works.js';
+import {
+  assembleWorks,
+  loadWorks,
+  resolveTolerance,
+  toleranceNamed,
+  worksIfNamed,
+} from '../../src/cli/works.js';
 
 const document = JSON.parse(
   readFileSync(new URL('../../examples/works.json', import.meta.url), 'utf8')
@@ -91,5 +98,45 @@ describe('loading one off disk', () => {
     const path = join(directory, 'works.json');
     await writeFile(path, '[]', 'utf8');
     await expect(loadWorks(path)).rejects.toThrow(/must hold an object/);
+  });
+});
+
+describe('resolving what a command should judge under', () => {
+  const path = fileURLToPath(new URL('../../examples/works.json', import.meta.url));
+  const fallback = { name: 'fallback', total: 1, formula: 'cmc' };
+
+  it('takes the fallback when no block is named', async () => {
+    const resolved = await resolveTolerance({}, fallback);
+    expect(resolved.block).toBe(fallback);
+    expect(resolved.works).toBeNull();
+  });
+
+  it('loads the works file exactly once when a block is named', async () => {
+    const resolved = await resolveTolerance({ works: path, tolerance: 'workwear' }, fallback);
+    expect(resolved.block.name).toBe('workwear');
+    expect(resolved.works.name).toBe('Redgate Dyeing Company');
+  });
+
+  it('reports a missing works file as bad data, the same as every other command', async () => {
+    await expect(resolveTolerance({ tolerance: 'workwear' }, fallback)).rejects.toMatchObject({
+      exitCode: 4,
+    });
+  });
+
+  it('says which blocks exist when one is misnamed', async () => {
+    await expect(resolveTolerance({ works: path, tolerance: 'nope' }, fallback)).rejects.toThrow(
+      /no tolerance called "nope"/
+    );
+  });
+
+  it('loads the works file for a command that needs it for another reason', async () => {
+    const works = await worksIfNamed({ works: path }, { because: 'naming a machine' });
+    expect(works.machines.size).toBe(5);
+  });
+
+  it('says what needed it when it is not there', async () => {
+    await expect(worksIfNamed({}, { because: 'naming a machine' })).rejects.toThrow(
+      /naming a machine needs the works file/
+    );
   });
 });

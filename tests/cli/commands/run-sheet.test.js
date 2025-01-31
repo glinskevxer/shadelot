@@ -52,7 +52,7 @@ describe('the run sheet command', () => {
 
   it('needs the works file to name a machine at all', async () => {
     const io = capture();
-    expect(await run(['run-sheet', '-p', profile, '-m', 'JET-4'], io)).toBe(2);
+    expect(await run(['run-sheet', '-p', profile, '-m', 'JET-4'], io)).toBe(4);
     expect(io.err.text()).toMatch(/needs the works file/);
   });
 

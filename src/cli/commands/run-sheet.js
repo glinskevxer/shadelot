@@ -21,7 +21,7 @@ import { duration, temperature } from '../../report/format.js';
 import { render, renderRecord } from '../../report/table.js';
 import { CommandError } from '../exit.js';
 import { positiveFlag, readObject } from '../io.js';
-import { loadWorks } from '../works.js';
+import { worksIfNamed } from '../works.js';
 
 const COLUMNS = [
   { key: 'elapsed', heading: 'clock', align: 'right', format: (value) => duration(value) },
@@ -46,10 +46,7 @@ export function registerRunSheetCommand(program, { out }) {
       const steps = walk(profile);
       let machine = null;
       if (options.machine) {
-        if (!options.works) {
-          throw new CommandError('naming a machine needs the works file it lives in', 'usage');
-        }
-        const works = await loadWorks(options.works);
+        const works = await worksIfNamed(options, { because: 'naming a machine' });
         machine = findMachine(works.machines, options.machine);
         const fit = fitsMachine(profile, machine);
         if (!fit.fits) {
