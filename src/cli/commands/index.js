@@ -6,6 +6,7 @@
  * command walks the same list, so the two cannot drift.
  */
 
+import { registerAnalyseCommand } from './analyse.js';
 import { registerCardCommand } from './card.js';
 import { registerCommandsCommand } from './commands-listing.js';
 import { registerCorrectCommand } from './correct.js';
@@ -23,6 +24,7 @@ import { registerSubstituteCommand } from './substitute.js';
 import { registerWorksCommand } from './works.js';
 
 const REGISTRARS = [
+  registerAnalyseCommand,
   registerCardCommand,
   registerCommandsCommand,
   registerCorrectCommand,
