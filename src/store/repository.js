@@ -12,6 +12,7 @@
 
 import { FieldError, requireText } from '../valid/guards.js';
 import { COLLECTIONS, get, load, put, remove, save } from './json.js';
+import { pruneBackups, takeBackup } from './backup.js';
 
 /** The fields each kind of record keeps. Everything else is derived and dropped. */
 export const SHAPES = Object.freeze({
@@ -59,9 +60,9 @@ export function toRecord(collection, value) {
   return record;
 }
 
-export async function open(path) {
+export async function open(path, { backups = true, keep = 14 } = {}) {
   const document = await load(path);
-  return { path, document, dirty: false };
+  return { path, document, dirty: false, backups, keep, lastBackup: null };
 }
 
 export function store(repository, collection, value) {
@@ -88,12 +89,25 @@ export function drop(repository, collection, id) {
   return removed;
 }
 
-export async function commit(repository, options) {
-  if (!repository.dirty) return { written: false, document: repository.document };
+/**
+ * Write the document out, taking a copy of what was there first. The copy is
+ * taken before the write and not after, which is the only ordering that helps:
+ * a backup of the file you just wrote is a backup of the problem.
+ */
+export async function commit(repository, options = {}) {
+  if (!repository.dirty) return { written: false, backedUp: null, document: repository.document };
+  let backedUp = null;
+  if (repository.backups) {
+    backedUp = await takeBackup(repository.path, options);
+  }
   const written = await save(repository.path, repository.document, options);
   repository.document = written;
   repository.dirty = false;
-  return { written: true, document: written };
+  repository.lastBackup = backedUp;
+  if (repository.backups && backedUp !== null) {
+    await pruneBackups(repository.path, { keep: repository.keep, ...options });
+  }
+  return { written: true, backedUp, document: written };
 }
 
 /** Every collection with a count, which is what a status command prints. */

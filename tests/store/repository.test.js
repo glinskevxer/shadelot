@@ -2,6 +2,7 @@ import { mkdtemp, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { beforeEach, describe, expect, it } from 'vitest';
+import { listBackups, readBackup } from '../../src/store/backup.js';
 import {
   SHAPES,
   census,
@@ -157,5 +158,74 @@ describe('dangling references', () => {
     const repository = await open(path);
     store(repository, 'lots', { id: 'G1', customer: 'K' });
     expect(danglingReferences(repository)).toEqual([]);
+  });
+});
+
+describe('backups around a write', () => {
+  const at = (iso) => () => new Date(iso);
+
+  it('takes no copy on the first write, because there was nothing there', async () => {
+    const repository = await open(path);
+    store(repository, 'recipes', { id: 'R1', name: 'olive' });
+    const result = await commit(repository, { now: at('2025-04-02T09:00:00Z') });
+    expect(result.written).toBe(true);
+    expect(result.backedUp).toBeNull();
+  });
+
+  it('takes one before the second write', async () => {
+    const first = await open(path);
+    store(first, 'recipes', { id: 'R1', name: 'olive' });
+    await commit(first);
+
+    const second = await open(path);
+    store(second, 'recipes', { id: 'R2', name: 'navy' });
+    const result = await commit(second, { now: at('2025-04-02T09:00:00Z') });
+    expect(result.backedUp).toMatch(/works\.json\.20250402T090000\.bak$/);
+  });
+
+  it('backs up what was there and not what it just wrote', async () => {
+    const first = await open(path);
+    store(first, 'recipes', { id: 'R1', name: 'olive' });
+    await commit(first);
+
+    const second = await open(path);
+    store(second, 'recipes', { id: 'R2', name: 'navy' });
+    const result = await commit(second, { now: at('2025-04-02T09:00:00Z') });
+    const copy = await readBackup(result.backedUp);
+    expect(copy.recipes.map((row) => row.id)).toEqual(['R1']);
+  });
+
+  it('takes nothing when nothing changed', async () => {
+    const first = await open(path);
+    store(first, 'recipes', { id: 'R1', name: 'olive' });
+    await commit(first);
+    const second = await open(path);
+    const result = await commit(second);
+    expect(result.written).toBe(false);
+    expect(result.backedUp).toBeNull();
+    expect(await listBackups(path)).toEqual([]);
+  });
+
+  it('prunes to the keep count as it goes', async () => {
+    const seed = await open(path);
+    store(seed, 'recipes', { id: 'R0', name: 'seed' });
+    await commit(seed);
+    for (let day = 1; day <= 5; day += 1) {
+      const repository = await open(path, { keep: 2 });
+      store(repository, 'recipes', { id: `R${day}`, name: `r${day}` });
+      await commit(repository, { now: at(`2025-04-0${day}T09:00:00Z`) });
+    }
+    expect(await listBackups(path)).toHaveLength(2);
+  });
+
+  it('can be turned off for a caller that does its own', async () => {
+    const first = await open(path);
+    store(first, 'recipes', { id: 'R1', name: 'olive' });
+    await commit(first);
+    const second = await open(path, { backups: false });
+    store(second, 'recipes', { id: 'R2', name: 'navy' });
+    const result = await commit(second);
+    expect(result.backedUp).toBeNull();
+    expect(await listBackups(path)).toEqual([]);
   });
 });
