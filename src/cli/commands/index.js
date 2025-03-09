@@ -16,6 +16,7 @@ import { registerEffluentCommand } from './effluent.js';
 import { registerMetamerismCommand } from './metamerism.js';
 import { registerOrderCommand } from './order.js';
 import { registerPlanCommand } from './plan.js';
+import { registerQualityCommand } from './quality.js';
 import { registerRunSheetCommand } from './run-sheet.js';
 import { registerSequenceCommand } from './sequence.js';
 import { registerShadeCommand } from './shade.js';
@@ -34,6 +35,7 @@ const REGISTRARS = [
   registerMetamerismCommand,
   registerOrderCommand,
   registerPlanCommand,
+  registerQualityCommand,
   registerRunSheetCommand,
   registerSequenceCommand,
   registerShadeCommand,

@@ -1,0 +1,27 @@
+{
+  "id": "R-1204",
+  "lengthMetres": 320,
+  "widthCm": 150,
+  "quality": "cotton poplin 140gsm",
+  "rolls": [{ "id": "R-1204", "beam": "W-8814", "yarnLots": ["Y-2231", "Y-2232"] }],
+  "faults": [
+    { "atMetres": 14.5, "kind": "slub", "lengthCm": 4, "cause": "yarn" },
+    {
+      "atMetres": 62.0,
+      "kind": "crease",
+      "lengthCm": 18,
+      "cause": "dyeing",
+      "note": "rope mark, jet 4"
+    },
+    { "atMetres": 118.4, "kind": "oil-mark", "lengthCm": 6, "cause": "weaving" },
+    { "atMetres": 190.2, "kind": "slub", "lengthCm": 3, "cause": "yarn" },
+    { "atMetres": 240.8, "kind": "stain", "lengthCm": 9, "cause": "handling" },
+    {
+      "atMetres": 288.1,
+      "kind": "shade-bar",
+      "lengthCm": 30,
+      "cause": "weaving",
+      "note": "beam change"
+    }
+  ]
+}
