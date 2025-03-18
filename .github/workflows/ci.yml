@@ -94,4 +94,20 @@ jobs:
           node bin/shadelot.js plan -w examples/works.json -r examples/recipe-olive.json -g examples/lots.json -m JET-4
           node bin/shadelot.js run-sheet -p examples/profile-reactive-60.json
           node bin/shadelot.js stock -s examples/stock.json --reorder examples/reorder-points.json
+          node bin/shadelot.js works -w examples/works.json
+          node bin/shadelot.js sequence -d examples/day-sequence.json
+          node bin/shadelot.js analyse -m examples/month-batches.json --hours 480
           node bin/shadelot.js commands
+
+      - name: every command is described in the listing
+        run: |
+          node bin/shadelot.js commands --format json > /tmp/commands.json
+          node -e "
+            const rows = require('/tmp/commands.json');
+            const thin = rows.filter((row) => !row.description || row.description.length < 12);
+            if (thin.length) {
+              console.error('undescribed: ' + thin.map((r) => r.command).join(', '));
+              process.exit(1);
+            }
+            console.log(rows.length + ' commands, all described');
+          "
