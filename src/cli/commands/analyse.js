@@ -10,7 +10,8 @@
 
 import { reworkCost, splitBy, summariseMonth, worstCost } from '../../analysis/monthly.js';
 import { bar, compareCuts, pareto } from '../../analysis/pareto.js';
-import { diagnose, signalsIn } from '../../analysis/control.js';
+import { controlLimits, diagnose, signalsIn } from '../../analysis/control.js';
+import { histogram, histogramLines, markedLine } from '../../report/chart.js';
 import { byBatch, byWeight, failureModes } from '../../quality/rft.js';
 import { money, percent } from '../../report/format.js';
 import { render, renderRecord } from '../../report/table.js';
@@ -80,9 +81,12 @@ export function registerAnalyseCommand(program, { out }) {
         .map((batch) => batch.shadeDifference)
         .filter((value) => typeof value === 'number');
       const chart = differences.length >= 2 ? signalsIn(differences) : null;
+      const limits = chart ? controlLimits(differences) : null;
 
       if (options.format === 'json') {
-        out.write(JSON.stringify({ month, rework, split, worst, causes, cuts, chart }, null, 2));
+        out.write(
+          JSON.stringify({ month, rework, split, worst, causes, cuts, chart, limits }, null, 2)
+        );
         return;
       }
 
@@ -109,6 +113,25 @@ export function registerAnalyseCommand(program, { out }) {
         out.write('');
         out.write(renderRecord([['cuts', cuts.note]]));
       }
+      if (chart) {
+        const marked = markedLine(differences, chart.signals, { width: 48 });
+        out.write('');
+        out.write(
+          renderRecord([
+            ['shade run', marked.line],
+            ['signals', marked.marks.trim() === '' ? 'none' : marked.marks],
+            ['centre', chart.limits.centre.toFixed(3)],
+            ['limits', `${chart.limits.lower.toFixed(3)} to ${chart.limits.upper.toFixed(3)}`],
+          ])
+        );
+        out.write('');
+        for (const line of histogramLines(histogram(differences, { bins: 8, width: 24 }), {
+          places: 3,
+        })) {
+          out.write(line);
+        }
+      }
+
       out.write('');
       out.write(
         renderRecord([

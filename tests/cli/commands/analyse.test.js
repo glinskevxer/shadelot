@@ -113,3 +113,57 @@ describe('the analyse command', () => {
     expect(io.err.text()).toMatch(/batch 0 in the month file has no cost/);
   });
 });
+
+describe('the shade chart it draws', () => {
+  it('prints a run and its limits', async () => {
+    const io = capture();
+    await run(['analyse', '-m', monthPath], io);
+    const text = io.out.text();
+    expect(text).toMatch(/shade run\s+\S+/);
+    expect(text).toMatch(/limits\s+-?\d+\.\d+ to \d+\.\d+/);
+  });
+
+  it('says none when nothing signalled', async () => {
+    const io = capture();
+    const steady = await monthFile(
+      'steady.json',
+      month.map((row, i) => ({ ...row, shadeDifference: 0.4 + (i % 2) * 0.02 }))
+    );
+    await run(['analyse', '-m', steady], io);
+    expect(io.out.text()).toMatch(/signals\s+none/);
+  });
+
+  it('marks the run where a rule fired', async () => {
+    const io = capture();
+    const drifting = await monthFile(
+      'drift.json',
+      month.map((row, i) => ({ ...row, shadeDifference: 0.3 + i * 0.02 }))
+    );
+    await run(['analyse', '-m', drifting], io);
+    expect(io.out.text()).toMatch(/signals\s+.*\^/);
+  });
+
+  it('draws a histogram of the differences', async () => {
+    const io = capture();
+    await run(['analyse', '-m', monthPath], io);
+    expect(io.out.text()).toMatch(/\d\.\d{3} to \d\.\d{3}\s+\d+\s+#/);
+  });
+
+  it('carries the limits into the json', async () => {
+    const io = capture();
+    await run(['analyse', '-m', monthPath, '--format', 'json'], io);
+    const limits = JSON.parse(io.out.text()).limits;
+    expect(limits.upper).toBeGreaterThan(limits.centre);
+    expect(limits.lower).toBeLessThan(limits.centre);
+  });
+
+  it('draws none of it when the batches carry no readings', async () => {
+    const io = capture();
+    const plain = await monthFile(
+      'plain2.json',
+      month.map(({ shadeDifference: _drop, ...rest }) => rest)
+    );
+    await run(['analyse', '-m', plain], io);
+    expect(io.out.text()).not.toMatch(/shade run/);
+  });
+});
