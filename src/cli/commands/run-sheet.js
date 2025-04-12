@@ -20,7 +20,7 @@ import { findMachine } from '../../machine/register.js';
 import { duration, temperature } from '../../report/format.js';
 import { render, renderRecord } from '../../report/table.js';
 import { CommandError } from '../exit.js';
-import { positiveFlag, readObject } from '../io.js';
+import { positiveFlag, readShaped } from '../io.js';
 import { worksIfNamed } from '../works.js';
 
 const COLUMNS = [
@@ -42,7 +42,9 @@ export function registerRunSheetCommand(program, { out }) {
     .option('-l, --load <kg>', 'the load, to work the energy out', positiveFlag('--load'))
     .option('--format <format>', 'table or json', 'table')
     .action(async (options) => {
-      const profile = makeProfile(await readObject(options.profile, { what: 'profile file' }));
+      const profile = makeProfile(
+        await readShaped(options.profile, 'profile', { what: 'profile file' })
+      );
       const steps = walk(profile);
       let machine = null;
       if (options.machine) {

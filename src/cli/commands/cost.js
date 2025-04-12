@@ -16,7 +16,7 @@ import { findMachine } from '../../machine/register.js';
 import { money, percent } from '../../report/format.js';
 import { render, renderRecord } from '../../report/table.js';
 import { dataError } from '../exit.js';
-import { numberFlag, positiveFlag, readObject } from '../io.js';
+import { numberFlag, positiveFlag, readShaped } from '../io.js';
 import { loadWorks } from '../works.js';
 
 const COLUMNS = [
@@ -44,7 +44,10 @@ export function registerCostCommand(program, { out }) {
         throw dataError('the works file carries no tariff, so nothing can be costed');
       }
       const tariff = makeTariff(works.tariff);
-      const recipe = makeRecipe(await readObject(options.recipe, { what: 'recipe file' }), works);
+      const recipe = makeRecipe(
+        await readShaped(options.recipe, 'recipe', { what: 'recipe file' }),
+        works
+      );
       const machine = findMachine(works.machines, options.machine);
       const litres = machine.deadVolumeLitres + machine.litresPerKg * options.load;
 
@@ -60,7 +63,7 @@ export function registerCostCommand(program, { out }) {
         soapBaths: 1,
       });
       const profile = options.profile
-        ? makeProfile(await readObject(options.profile, { what: 'profile file' }))
+        ? makeProfile(await readShaped(options.profile, 'profile', { what: 'profile file' }))
         : null;
       const energy = profile
         ? batchEnergy(profile, { litres, machine })

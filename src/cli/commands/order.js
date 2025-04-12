@@ -18,7 +18,7 @@ import { makeTolerance } from '../../colour/tolerance.js';
 import { percent, signed } from '../../report/format.js';
 import { render, renderRecord } from '../../report/table.js';
 import { CommandError, dataError } from '../exit.js';
-import { readObject } from '../io.js';
+import { readShaped } from '../io.js';
 import { toReading } from '../readings.js';
 import { resolveTolerance } from '../works.js';
 
@@ -44,7 +44,7 @@ export function registerOrderCommand(program, { out }) {
     .option('-t, --tolerance <name>', 'the tolerance block to judge under')
     .option('--format <format>', 'table or json', 'table')
     .action(async (options) => {
-      const document = await readObject(options.order, { what: 'order file' });
+      const document = await readShaped(options.order, 'order', { what: 'order file' });
       const { block } = await resolveTolerance(
         options,
         makeTolerance({ name: 'works default', formula: 'cmc', total: 1 })

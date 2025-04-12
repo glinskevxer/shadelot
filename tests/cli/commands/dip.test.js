@@ -108,6 +108,6 @@ describe('the dip command', () => {
     const io = capture();
     const bad = await seriesFile('bad.json', { ...series, standard: { L: 52 } });
     expect(await run(['dip', '-s', bad], io)).toBe(4);
-    expect(io.err.text()).toMatch(/standard is missing a usable a and b/);
+    expect(io.err.text()).toMatch(/standard in the dip series must be a reading/);
   });
 });

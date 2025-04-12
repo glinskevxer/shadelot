@@ -12,7 +12,7 @@ import { barreRisk } from '../../greige/beam.js';
 import { percent } from '../../report/format.js';
 import { render, renderRecord } from '../../report/table.js';
 import { CommandError, dataError } from '../exit.js';
-import { numberFlag, readObject } from '../io.js';
+import { numberFlag, readShaped } from '../io.js';
 
 const FAULT_COLUMNS = [
   { key: 'atMetres', heading: 'at', align: 'right', format: (v) => `${v.toFixed(1)} m` },
@@ -43,12 +43,7 @@ export function registerQualityCommand(program, { out }) {
     )
     .option('--format <format>', 'table or json', 'table')
     .action(async (options) => {
-      const document = await readObject(options.roll, { what: 'roll file' });
-      for (const field of ['id', 'lengthMetres', 'widthCm']) {
-        if (document[field] === undefined) {
-          throw dataError(`the roll file has no ${field}`);
-        }
-      }
+      const document = await readShaped(options.roll, 'roll', { what: 'roll file' });
       const faults = (document.faults ?? []).map((fault, index) => {
         try {
           return makeFault({ rollId: document.id, ...fault });

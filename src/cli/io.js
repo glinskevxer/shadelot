@@ -8,6 +8,7 @@
  */
 
 import { readFile } from 'node:fs/promises';
+import { checkShape, fieldsFor } from '../valid/schema.js';
 import { dataError, notFoundError } from './exit.js';
 
 export async function readJson(path, { what = 'file' } = {}) {
@@ -98,3 +99,18 @@ export const stderr = {
     process.stderr.write(`${text}\n`);
   },
 };
+
+/**
+ * Read a file and check it against one of the shapes before the caller touches
+ * it. Every problem is reported in one message, because a caller fixing a file
+ * by hand wants the list rather than one line at a time.
+ */
+export async function readShaped(path, shape, { what } = {}) {
+  const label = what ?? `${shape} file`;
+  const document = await readObject(path, { what: label });
+  const problems = checkShape(document, fieldsFor(shape), { what: label });
+  if (problems.length > 0) {
+    throw dataError(`${path} is not usable: ${problems.join('; ')}`);
+  }
+  return document;
+}

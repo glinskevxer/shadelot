@@ -11,6 +11,7 @@ import {
   readArray,
   readJson,
   readObject,
+  readShaped,
 } from '../../src/cli/io.js';
 
 let directory;
@@ -108,5 +109,61 @@ describe('capturing output', () => {
     const output = createOutput();
     output.write(12);
     expect(output.lines).toEqual(['12']);
+  });
+});
+
+describe('reading a file through its shape', () => {
+  it('gives back the document when it is complete', async () => {
+    const path = join(directory, 'recipe.json');
+    await writeFile(
+      path,
+      JSON.stringify({
+        id: 'R1',
+        name: 'olive',
+        process: 'exhaust',
+        substrate: 'cotton',
+        liquorRatio: 8,
+        dyes: [],
+      }),
+      'utf8'
+    );
+    expect((await readShaped(path, 'recipe')).id).toBe('R1');
+  });
+
+  it('reports every problem in one message rather than the first', async () => {
+    const path = join(directory, 'thin.json');
+    await writeFile(path, JSON.stringify({ id: 'R1' }), 'utf8');
+    await expect(readShaped(path, 'recipe')).rejects.toThrow(/has no name.*has no process/s);
+  });
+
+  it('names the file and what it was being read as', async () => {
+    const path = join(directory, 'thin.json');
+    await writeFile(path, JSON.stringify({ id: 'R1' }), 'utf8');
+    await expect(readShaped(path, 'recipe', { what: 'recipe file' })).rejects.toThrow(
+      /thin\.json is not usable/
+    );
+  });
+
+  it('leaves with the invalid data code', async () => {
+    const path = join(directory, 'thin.json');
+    await writeFile(path, JSON.stringify({}), 'utf8');
+    try {
+      await readShaped(path, 'recipe');
+      throw new Error('should have thrown');
+    } catch (error) {
+      expect(error.exitCode).toBe(EXIT.invalidData);
+    }
+  });
+
+  it('still reports a missing file as not found', async () => {
+    await expect(readShaped(join(directory, 'nope.json'), 'recipe')).rejects.toMatchObject({
+      exitCode: EXIT.notFound,
+    });
+  });
+
+  it('refuses a shape nothing reads', async () => {
+    const path = join(directory, 'recipe.json');
+    await writeFile(path, JSON.stringify({}), 'utf8');
+    await expect(readShaped(path, 'invoice')).rejects.toThrow(/must be one of recipe/);
   });
 });

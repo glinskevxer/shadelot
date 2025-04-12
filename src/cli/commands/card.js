@@ -11,8 +11,7 @@ import { buildCard } from '../../recipe/card.js';
 import { makeRecipe } from '../../recipe/recipe.js';
 import { money, weight } from '../../report/format.js';
 import { render, renderRecord } from '../../report/table.js';
-import { positiveFlag } from '../io.js';
-import { readObject } from '../io.js';
+import { positiveFlag, readShaped } from '../io.js';
 import { loadWorks } from '../works.js';
 
 const COLUMNS = [
@@ -41,7 +40,7 @@ export function registerCardCommand(program, { out }) {
     .option('--format <format>', 'table or json', 'table')
     .action(async (options) => {
       const works = await loadWorks(options.works);
-      const document = await readObject(options.recipe, { what: 'recipe file' });
+      const document = await readShaped(options.recipe, 'recipe', { what: 'recipe file' });
       const recipe = makeRecipe(document, works);
       const context = {
         catalogue: works.catalogue,

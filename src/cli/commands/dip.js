@@ -19,7 +19,7 @@ import {
 import { signed } from '../../report/format.js';
 import { render, renderRecord } from '../../report/table.js';
 import { CommandError, dataError } from '../exit.js';
-import { readObject } from '../io.js';
+import { readShaped } from '../io.js';
 import { toReading as reading } from '../readings.js';
 import { resolveTolerance } from '../works.js';
 
@@ -44,8 +44,8 @@ export function registerDipCommand(program, { out }) {
     .option('--close', 'close the submission on the closest dip')
     .option('--format <format>', 'table or json', 'table')
     .action(async (options) => {
-      const document = await readObject(options.series, { what: 'dip series' });
-      if (!Array.isArray(document.dips) || document.dips.length === 0) {
+      const document = await readShaped(options.series, 'dipSeries', { what: 'dip series' });
+      if (document.dips.length === 0) {
         throw dataError('the dip series must carry a dips array with at least one reading');
       }
       const { block } = await resolveTolerance(

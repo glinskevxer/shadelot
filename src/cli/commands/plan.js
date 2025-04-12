@@ -13,7 +13,7 @@ import { makeRecipe } from '../../recipe/recipe.js';
 import { percent, weight } from '../../report/format.js';
 import { render, renderRecord } from '../../report/table.js';
 import { CommandError, notFoundError } from '../exit.js';
-import { readArray, readObject } from '../io.js';
+import { readArray, readShaped } from '../io.js';
 import { loadWorks } from '../works.js';
 
 const COLUMNS = [
@@ -49,7 +49,10 @@ export function registerPlanCommand(program, { out }) {
     .option('--format <format>', 'table or json', 'table')
     .action(async (options) => {
       const works = await loadWorks(options.works);
-      const recipe = makeRecipe(await readObject(options.recipe, { what: 'recipe file' }), works);
+      const recipe = makeRecipe(
+        await readShaped(options.recipe, 'recipe', { what: 'recipe file' }),
+        works
+      );
       const lots = await readArray(options.lots, { what: 'lots file' });
       const fibreKg = lots.reduce((sum, lot) => sum + Number(lot.mass ?? 0), 0);
       if (!(fibreKg > 0)) {
