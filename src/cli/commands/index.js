@@ -13,6 +13,7 @@ import { registerCorrectCommand } from './correct.js';
 import { registerCostCommand } from './cost.js';
 import { registerDipCommand } from './dip.js';
 import { registerEffluentCommand } from './effluent.js';
+import { registerLibraryCommand } from './library.js';
 import { registerMetamerismCommand } from './metamerism.js';
 import { registerOrderCommand } from './order.js';
 import { registerPlanCommand } from './plan.js';
@@ -32,6 +33,7 @@ const REGISTRARS = [
   registerCostCommand,
   registerDipCommand,
   registerEffluentCommand,
+  registerLibraryCommand,
   registerMetamerismCommand,
   registerOrderCommand,
   registerPlanCommand,

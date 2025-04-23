@@ -1,0 +1,58 @@
+[
+  {
+    "submissionId": "L25-00044",
+    "customer": "Kestrel Apparel",
+    "standardName": "olive 4488",
+    "substrate": "cotton poplin 140gsm",
+    "recipeId": "R25-00081",
+    "rounds": 3,
+    "approved": true,
+    "standard": {
+      "L": 52.14,
+      "a": -14.32,
+      "b": 22.68
+    }
+  },
+  {
+    "submissionId": "L25-00051",
+    "customer": "Kestrel Apparel",
+    "standardName": "olive 4488 deep",
+    "substrate": "cotton poplin 140gsm",
+    "recipeId": "R25-00092",
+    "rounds": 2,
+    "approved": true,
+    "standard": {
+      "L": 46.2,
+      "a": -13.1,
+      "b": 19.4
+    }
+  },
+  {
+    "submissionId": "L24-00318",
+    "customer": "Marlow Uniforms",
+    "standardName": "sage 221",
+    "substrate": "cotton twill 210gsm",
+    "recipeId": "R24-00318",
+    "rounds": 5,
+    "approved": false,
+    "standard": {
+      "L": 52.9,
+      "a": -14.9,
+      "b": 23.4
+    }
+  },
+  {
+    "submissionId": "L24-00402",
+    "customer": "Redgate Samples",
+    "standardName": "navy 118",
+    "substrate": "cotton poplin 140gsm",
+    "recipeId": "R24-00402",
+    "rounds": 2,
+    "approved": true,
+    "standard": {
+      "L": 28.4,
+      "a": 2.1,
+      "b": -24.8
+    }
+  }
+]

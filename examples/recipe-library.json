@@ -1,0 +1,78 @@
+[
+  {
+    "id": "R25-00081",
+    "name": "Kestrel olive 4488",
+    "process": "exhaust",
+    "substrate": "cotton poplin 140gsm",
+    "liquorRatio": 8,
+    "dyes": [
+      {
+        "code": "RY-145-ACME",
+        "owf": 1.24
+      },
+      {
+        "code": "RR-195-ACME",
+        "owf": 0.31
+      },
+      {
+        "code": "RB-19-ACME",
+        "owf": 0.68
+      }
+    ]
+  },
+  {
+    "id": "R25-00092",
+    "name": "Kestrel olive deep",
+    "process": "exhaust",
+    "substrate": "cotton poplin 140gsm",
+    "liquorRatio": 8,
+    "dyes": [
+      {
+        "code": "RY-145-ACME",
+        "owf": 2.48
+      },
+      {
+        "code": "RR-195-ACME",
+        "owf": 0.62
+      },
+      {
+        "code": "RB-19-ACME",
+        "owf": 1.36
+      }
+    ]
+  },
+  {
+    "id": "R24-00318",
+    "name": "Marlow sage 221",
+    "process": "exhaust",
+    "substrate": "cotton twill 210gsm",
+    "liquorRatio": 10,
+    "dyes": [
+      {
+        "code": "RY-145-ACME",
+        "owf": 1.1
+      },
+      {
+        "code": "RB-19-ACME",
+        "owf": 0.9
+      }
+    ]
+  },
+  {
+    "id": "R24-00402",
+    "name": "Redgate navy 118",
+    "process": "exhaust",
+    "substrate": "cotton poplin 140gsm",
+    "liquorRatio": 8,
+    "dyes": [
+      {
+        "code": "RB-19-ACME",
+        "owf": 3.4
+      },
+      {
+        "code": "RR-195-ACME",
+        "owf": 0.42
+      }
+    ]
+  }
+]
