@@ -10,7 +10,7 @@
 import { buildCard } from '../../recipe/card.js';
 import { makeRecipe } from '../../recipe/recipe.js';
 import { money, weight } from '../../report/format.js';
-import { render, renderRecord } from '../../report/table.js';
+import { respond } from '../report.js';
 import { positiveFlag, readShaped } from '../io.js';
 import { loadWorks } from '../works.js';
 
@@ -52,23 +52,22 @@ export function registerCardCommand(program, { out }) {
       const card = buildCard(recipe, options.load, context);
       const cost = card.lines.reduce((sum, line) => sum + line.kg * line.unitPrice, 0);
 
-      if (options.format === 'json') {
-        out.write(JSON.stringify({ ...card, cost }, null, 2));
-        return;
-      }
-
-      out.write(
-        renderRecord([
-          ['recipe', `${recipe.id}  ${recipe.name}`],
-          ['substrate', recipe.substrate],
-          ['load', `${options.load} kg`],
-          ['bath', `${card.litres} litres at ${recipe.liquorRatio.toFixed(1)} to 1`],
-          ['depth', `${recipe.band}, ${recipe.totalOwf.toFixed(3)} percent on weight`],
-          ['dyes', `${weight(card.dyeKg)} kg`],
-          ['charge', money(cost)],
-        ])
-      );
-      out.write('');
-      out.write(render(options.format, COLUMNS, card.lines));
+      respond(out, options.format, {
+        json: { ...card, cost },
+        sections: [
+          {
+            block: [
+              ['recipe', `${recipe.id}  ${recipe.name}`],
+              ['substrate', recipe.substrate],
+              ['load', `${options.load} kg`],
+              ['bath', `${card.litres} litres at ${recipe.liquorRatio.toFixed(1)} to 1`],
+              ['depth', `${recipe.band}, ${recipe.totalOwf.toFixed(3)} percent on weight`],
+              ['dyes', `${weight(card.dyeKg)} kg`],
+              ['charge', money(cost)],
+            ],
+          },
+          { table: { columns: COLUMNS, rows: card.lines, empty: 'nothing to dispense' } },
+        ],
+      });
     });
 }

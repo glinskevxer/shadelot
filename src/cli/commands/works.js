@@ -9,7 +9,7 @@
 
 import { liquorRatioBand } from '../../machine/register.js';
 import { money } from '../../report/format.js';
-import { render, renderRecord } from '../../report/table.js';
+import { respond } from '../report.js';
 import { loadWorks } from '../works.js';
 
 const MACHINE_COLUMNS = [
@@ -65,54 +65,42 @@ export function registerWorksCommand(program, { out }) {
         dH: block.axes.dH,
       }));
 
-      if (options.format === 'json') {
-        out.write(
-          JSON.stringify({ name: works.name, machines, dyes, chemicals, tolerances }, null, 2)
-        );
-        return;
-      }
-
       const show = (part) => !options.only || options.only === part;
-      if (!options.only) {
-        out.write(
-          renderRecord([
-            ['works', works.name],
-            ['machines', String(machines.length)],
-            ['dyestuffs', String(dyes.length)],
-            ['chemicals', String(chemicals.length)],
-            ['salt', works.saltCode ?? 'not set'],
-            ['alkali', works.alkaliCode ?? 'not set'],
-            ['tariff', works.tariff ? 'present' : 'missing'],
-            ['consent', works.consent ? works.consent.name : 'missing'],
-          ])
-        );
-      }
-      if (show('machines')) {
-        out.write('');
-        out.write(render(options.format, MACHINE_COLUMNS, machines));
-      }
-      if (show('dyestuffs')) {
-        out.write('');
-        out.write(render(options.format, DYE_COLUMNS, dyes));
-      }
-      if (show('chemicals')) {
-        out.write('');
-        out.write(render(options.format, CHEMICAL_COLUMNS, chemicals));
-      }
-      if (options.only === 'tolerances') {
-        out.write('');
-        out.write(
-          render(
-            options.format,
-            [
-              { key: 'name', heading: 'block' },
-              { key: 'formula', heading: 'formula' },
-              { key: 'total', heading: 'total', align: 'right', format: (v) => v.toFixed(2) },
-            ],
-            tolerances
-          )
-        );
-      }
+      respond(out, options.format, {
+        json: { name: works.name, machines, dyes, chemicals, tolerances },
+        sections: [
+          options.only
+            ? null
+            : {
+                block: [
+                  ['works', works.name],
+                  ['machines', String(machines.length)],
+                  ['dyestuffs', String(dyes.length)],
+                  ['chemicals', String(chemicals.length)],
+                  ['salt', works.saltCode ?? 'not set'],
+                  ['alkali', works.alkaliCode ?? 'not set'],
+                  ['tariff', works.tariff ? 'present' : 'missing'],
+                  ['consent', works.consent ? works.consent.name : 'missing'],
+                ],
+              },
+          show('machines') ? { table: { columns: MACHINE_COLUMNS, rows: machines } } : null,
+          show('dyestuffs') ? { table: { columns: DYE_COLUMNS, rows: dyes } } : null,
+          show('chemicals') ? { table: { columns: CHEMICAL_COLUMNS, rows: chemicals } } : null,
+          options.only === 'tolerances'
+            ? {
+                table: {
+                  columns: [
+                    { key: 'name', heading: 'block' },
+                    { key: 'formula', heading: 'formula' },
+                    { key: 'total', heading: 'total', align: 'right', format: (v) => v.toFixed(2) },
+                  ],
+                  rows: tolerances,
+                  empty: 'the works file carries no tolerance blocks',
+                },
+              }
+            : null,
+        ],
+      });
     });
 }
 

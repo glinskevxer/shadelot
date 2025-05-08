@@ -15,7 +15,7 @@ import {
   sequencingSaving,
 } from '../../schedule/sequence.js';
 import { duration, percent } from '../../report/format.js';
-import { render, renderRecord } from '../../report/table.js';
+import { respond } from '../report.js';
 import { dataError } from '../exit.js';
 import { numberFlag, readArray } from '../io.js';
 
@@ -79,24 +79,23 @@ export function registerSequenceCommand(program, { out }) {
         };
       });
 
-      if (options.format === 'json') {
-        out.write(JSON.stringify({ order: rows, cost, saving, load }, null, 2));
-        return;
-      }
-
-      out.write(render(options.format, COLUMNS, rows));
-      out.write('');
-      out.write(
-        renderRecord([
-          ['batches', String(batches.length)],
-          ['cleaning', duration(rows.reduce((sum, row) => sum + row.cleanMinutes, 0))],
-          ['total', duration(cost.minutes)],
-          ['as they arrived', duration(saving.asGivenMinutes)],
-          ['saved by ordering', duration(saving.savedMinutes)],
-          ['hours needed', `${load.hours.toFixed(1)} of ${options.hours}`],
-          ['utilisation', percent(load.utilisation)],
-          ['overrun', load.overrun > 0 ? duration(load.overrun * 60) : 'none'],
-        ])
-      );
+      respond(out, options.format, {
+        json: { order: rows, cost, saving, load },
+        sections: [
+          { table: { columns: COLUMNS, rows, empty: 'nothing to sequence' } },
+          {
+            block: [
+              ['batches', String(batches.length)],
+              ['cleaning', duration(rows.reduce((sum, row) => sum + row.cleanMinutes, 0))],
+              ['total', duration(cost.minutes)],
+              ['as they arrived', duration(saving.asGivenMinutes)],
+              ['saved by ordering', duration(saving.savedMinutes)],
+              ['hours needed', `${load.hours.toFixed(1)} of ${options.hours}`],
+              ['utilisation', percent(load.utilisation)],
+              ['overrun', load.overrun > 0 ? duration(load.overrun * 60) : 'none'],
+            ],
+          },
+        ],
+      });
     });
 }
