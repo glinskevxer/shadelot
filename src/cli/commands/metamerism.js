@@ -15,7 +15,7 @@ import {
   metamerismIndex,
 } from '../../colour/illuminant.js';
 import { makeTolerance } from '../../colour/tolerance.js';
-import { render, renderRecord } from '../../report/table.js';
+import { respond } from '../report.js';
 import { CommandError } from '../exit.js';
 import { numberFlag, readObject } from '../io.js';
 import { toReadingSet } from '../readings.js';
@@ -77,24 +77,22 @@ export function registerMetamerismCommand(program, { out }) {
         state: judged.failing.includes(illuminant) ? 'out' : 'inside',
       }));
 
-      if (options.format === 'json') {
-        out.write(
-          JSON.stringify({ ...index, metameric, verdict: judged.verdict, lamps: rows }, null, 2)
-        );
-      } else {
-        out.write(render(options.format, COLUMNS, rows));
-        out.write('');
-        out.write(
-          renderRecord([
-            ['matched under', describeIlluminant(index.primary)],
-            ['tolerance', `${block.name} (${block.formula}, total ${block.total})`],
-            ['index', index.index.toFixed(3)],
-            ['worst drift', `${index.worst.toFixed(3)} under ${index.worstUnder}`],
-            ['metameric', metameric ? 'yes' : 'no'],
-            ['verdict', judged.verdict],
-          ])
-        );
-      }
+      respond(out, options.format, {
+        json: { ...index, metameric, verdict: judged.verdict, lamps: rows },
+        sections: [
+          { table: { columns: COLUMNS, rows } },
+          {
+            block: [
+              ['matched under', describeIlluminant(index.primary)],
+              ['tolerance', `${block.name} (${block.formula}, total ${block.total})`],
+              ['index', index.index.toFixed(3)],
+              ['worst drift', `${index.worst.toFixed(3)} under ${index.worstUnder}`],
+              ['metameric', metameric ? 'yes' : 'no'],
+              ['verdict', judged.verdict],
+            ],
+          },
+        ],
+      });
 
       if (judged.verdict === 'fail' || metameric) {
         const reason = metameric

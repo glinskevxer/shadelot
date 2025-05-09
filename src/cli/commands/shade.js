@@ -11,7 +11,7 @@ import { describeDifference } from '../../colour/lab.js';
 import { formulaNames } from '../../colour/deltae.js';
 import { judge, makeTolerance } from '../../colour/tolerance.js';
 import { signed } from '../../report/format.js';
-import { render, renderRecord } from '../../report/table.js';
+import { respond } from '../report.js';
 import { EXIT, CommandError } from '../exit.js';
 import { numberFlag, readObject } from '../io.js';
 import { toReading } from '../readings.js';
@@ -67,20 +67,20 @@ export function registerShadeCommand(program, { out }) {
         return { axis, value, limit, state: breached ? 'over' : 'inside' };
       });
 
-      if (options.format === 'json') {
-        out.write(JSON.stringify({ ...result, tolerance: block.name, axes: rows }, null, 2));
-      } else {
-        out.write(
-          renderRecord([
-            ['tolerance', `${block.name} (${block.formula}, total ${block.total})`],
-            ['difference', result.value.toFixed(3)],
-            ['verdict', result.verdict],
-            ['reads as', describeDifference(standard, batch)],
-          ])
-        );
-        out.write('');
-        out.write(render(options.format, AXIS_COLUMNS, rows));
-      }
+      respond(out, options.format, {
+        json: { ...result, tolerance: block.name, axes: rows },
+        sections: [
+          {
+            block: [
+              ['tolerance', `${block.name} (${block.formula}, total ${block.total})`],
+              ['difference', result.value.toFixed(3)],
+              ['verdict', result.verdict],
+              ['reads as', describeDifference(standard, batch)],
+            ],
+          },
+          { table: { columns: AXIS_COLUMNS, rows } },
+        ],
+      });
 
       if (result.verdict === 'fail') {
         throw new CommandError(

@@ -100,3 +100,32 @@ describe('the pair helper', () => {
     expect(pair('note', null, { whenEmpty: 'none' })).toEqual(['note', 'none']);
   });
 });
+
+describe('what the commands now share', () => {
+  it('is being moved onto, with the count of the ones left going down', async () => {
+    const { readFileSync, readdirSync } = await import('node:fs');
+    const { join } = await import('node:path');
+    const { fileURLToPath } = await import('node:url');
+    const directory = fileURLToPath(new URL('../../src/cli/commands', import.meta.url));
+    const stragglers = readdirSync(directory)
+      .filter((name) => name.endsWith('.js') && name !== 'index.js')
+      .filter((name) => {
+        const text = readFileSync(join(directory, name), 'utf8');
+        return text.includes("options.format === 'json'");
+      });
+    expect(stragglers.length).toBeLessThanOrEqual(10);
+  });
+
+  it('leaves no command writing its own blank line between two tables', async () => {
+    const { readFileSync, readdirSync } = await import('node:fs');
+    const { join } = await import('node:path');
+    const { fileURLToPath } = await import('node:url');
+    const directory = fileURLToPath(new URL('../../src/cli/commands', import.meta.url));
+    for (const name of readdirSync(directory).filter((entry) => entry.endsWith('.js'))) {
+      const text = readFileSync(join(directory, name), 'utf8');
+      if (text.includes('respond(out')) {
+        expect(text.includes("out.write('');"), `${name} writes its own blank line`).toBe(false);
+      }
+    }
+  });
+});

@@ -17,7 +17,7 @@ import {
   roundsTaken,
 } from '../../labdip/submission.js';
 import { signed } from '../../report/format.js';
-import { render, renderRecord } from '../../report/table.js';
+import { respond } from '../report.js';
 import { CommandError, dataError } from '../exit.js';
 import { readShaped } from '../io.js';
 import { toReading as reading } from '../readings.js';
@@ -90,25 +90,23 @@ export function registerDipCommand(program, { out }) {
         closeSubmission(submission, passingDips(submission).length > 0 ? 'approved' : 'rejected');
       }
 
-      if (options.format === 'json') {
-        out.write(
-          JSON.stringify({ dips: rows, best: best.recipeId, outcome: submission.outcome }, null, 2)
-        );
-      } else {
-        out.write(render(options.format, COLUMNS, rows));
-        out.write('');
-        out.write(
-          renderRecord([
-            ['standard', submission.standardName],
-            ['customer', submission.customer],
-            ['tolerance', `${block.name} (${block.formula}, total ${block.total})`],
-            ['rounds', String(roundsTaken(submission))],
-            ['closest', `${best.recipeId} at ${best.value.toFixed(3)}`],
-            ['passing', String(passingDips(submission).length)],
-            ['outcome', submission.outcome],
-          ])
-        );
-      }
+      respond(out, options.format, {
+        json: { dips: rows, best: best.recipeId, outcome: submission.outcome },
+        sections: [
+          { table: { columns: COLUMNS, rows } },
+          {
+            block: [
+              ['standard', submission.standardName],
+              ['customer', submission.customer],
+              ['tolerance', `${block.name} (${block.formula}, total ${block.total})`],
+              ['rounds', String(roundsTaken(submission))],
+              ['closest', `${best.recipeId} at ${best.value.toFixed(3)}`],
+              ['passing', String(passingDips(submission).length)],
+              ['outcome', submission.outcome],
+            ],
+          },
+        ],
+      });
 
       if (passingDips(submission).length === 0) {
         throw new CommandError('no dip in the series is inside the tolerance', 'outOfTolerance');

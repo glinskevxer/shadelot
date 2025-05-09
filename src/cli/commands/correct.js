@@ -9,7 +9,7 @@
 import { judge, makeTolerance } from '../../colour/tolerance.js';
 import { ACTIONS, addOnDose, decide, readFacts, usesMachineTime } from '../../shade/correction.js';
 import { percent, signed, weight } from '../../report/format.js';
-import { render, renderRecord } from '../../report/table.js';
+import { respond } from '../report.js';
 import { numberFlag, readObject } from '../io.js';
 import { toReading as reading } from '../readings.js';
 import { resolveTolerance } from '../works.js';
@@ -74,28 +74,25 @@ export function registerCorrectCommand(program, { out }) {
         });
       }
 
-      if (options.format === 'json') {
-        out.write(JSON.stringify({ ...outcome, verdict: verdict.verdict, doses }, null, 2));
-        return;
-      }
-
-      out.write(
-        renderRecord([
-          ['verdict', `${verdict.verdict} at ${verdict.value.toFixed(3)} ${block.formula}`],
-          ['lightness', signed(facts.difference.dL, 3)],
-          ['chroma', signed(facts.difference.dC, 3)],
-          ['hue', signed(facts.difference.dH, 3)],
-          ['strength', facts.strength === null ? 'not measured' : percent(facts.strength)],
-          ['action', outcome.action],
-          ['rule', outcome.rule],
-          ['because', outcome.reason],
-          ['machine time', usesMachineTime(outcome.action) ? 'yes' : 'no'],
-        ])
-      );
-      if (doses.length > 0) {
-        out.write('');
-        out.write(render(options.format, DOSE_COLUMNS, doses));
-      }
+      respond(out, options.format, {
+        json: { ...outcome, verdict: verdict.verdict, doses },
+        sections: [
+          {
+            block: [
+              ['verdict', `${verdict.verdict} at ${verdict.value.toFixed(3)} ${block.formula}`],
+              ['lightness', signed(facts.difference.dL, 3)],
+              ['chroma', signed(facts.difference.dC, 3)],
+              ['hue', signed(facts.difference.dH, 3)],
+              ['strength', facts.strength === null ? 'not measured' : percent(facts.strength)],
+              ['action', outcome.action],
+              ['rule', outcome.rule],
+              ['because', outcome.reason],
+              ['machine time', usesMachineTime(outcome.action) ? 'yes' : 'no'],
+            ],
+          },
+          { table: { columns: DOSE_COLUMNS, rows: doses } },
+        ],
+      });
     });
 }
 
