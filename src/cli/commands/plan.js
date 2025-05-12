@@ -11,7 +11,7 @@ import { assessFit, fillFactor, planBatch } from '../../batch/plan.js';
 import { findMachine } from '../../machine/register.js';
 import { makeRecipe } from '../../recipe/recipe.js';
 import { percent, weight } from '../../report/format.js';
-import { render, renderRecord } from '../../report/table.js';
+import { respond } from '../report.js';
 import { CommandError, notFoundError } from '../exit.js';
 import { readArray, readShaped } from '../io.js';
 import { loadWorks } from '../works.js';
@@ -59,61 +59,67 @@ export function registerPlanCommand(program, { out }) {
         throw new CommandError('the lots file totals no cloth at all', 'invalidData');
       }
 
-      if (options.candidates || !options.machine) {
-        const rows = [...works.machines.values()].map((machine) => {
-          const fit = assessFit(machine, recipe, fibreKg);
-          return {
-            id: machine.id,
-            type: machine.type,
-            fits: fit.fits ? 'yes' : 'no',
-            reason: fit.reason,
-            ratio: fit.fits
-              ? (machine.deadVolumeLitres + machine.litresPerKg * fibreKg) / fibreKg
-              : null,
-          };
-        });
-        out.write(renderRecord([['load', `${weight(fibreKg)} kg over ${lots.length} lots`]]));
-        out.write('');
-        out.write(render(options.format, CANDIDATE_COLUMNS, rows));
-        if (!options.machine) return;
-        out.write('');
-      }
+      const wantsCandidates = options.candidates || !options.machine;
+      const candidates = wantsCandidates
+        ? [...works.machines.values()].map((machine) => {
+            const fit = assessFit(machine, recipe, fibreKg);
+            return {
+              id: machine.id,
+              type: machine.type,
+              fits: fit.fits ? 'yes' : 'no',
+              reason: fit.reason,
+              ratio: fit.fits
+                ? (machine.deadVolumeLitres + machine.litresPerKg * fibreKg) / fibreKg
+                : null,
+            };
+          })
+        : [];
 
-      const machine = findMachine(works.machines, options.machine);
-      const fit = assessFit(machine, recipe, fibreKg);
-      if (!fit.fits) {
-        throw notFoundError(`${fibreKg.toFixed(1)} kg does not fit ${machine.id}: ${fit.reason}`);
-      }
-      const batch = planBatch(
-        { id: options.batch, machine, recipe, lots },
-        {
-          catalogue: works.catalogue,
-          chemicals: works.chemicals,
-          saltCode: works.saltCode,
-          alkaliCode: works.alkaliCode,
+      let batch = null;
+      let machine = null;
+      if (options.machine) {
+        machine = findMachine(works.machines, options.machine);
+        const fit = assessFit(machine, recipe, fibreKg);
+        if (!fit.fits) {
+          throw notFoundError(`${fibreKg.toFixed(1)} kg does not fit ${machine.id}: ${fit.reason}`);
         }
-      );
-
-      if (options.format === 'json') {
-        out.write(JSON.stringify(batch, null, 2));
-        return;
+        batch = planBatch(
+          { id: options.batch, machine, recipe, lots },
+          {
+            catalogue: works.catalogue,
+            chemicals: works.chemicals,
+            saltCode: works.saltCode,
+            alkaliCode: works.alkaliCode,
+          }
+        );
       }
-      out.write(
-        renderRecord([
-          ['batch', batch.id],
-          ['machine', `${machine.id} (${machine.type})`],
-          [
-            'load',
-            `${weight(batch.fibreKg)} kg, ${percent(fillFactor(machine, batch.fibreKg))} of capacity`,
-          ],
-          ['bath', `${batch.litres} litres`],
-          ['ratio asked', batch.plannedRatio.toFixed(2)],
-          ['ratio given', batch.actualRatio.toFixed(2)],
-          ['drift', percent(batch.ratioDrift)],
-          ['re-dosed', batch.redosed ? 'yes, the grams per litre lines have moved' : 'no'],
-        ])
-      );
-      out.write('');
-      out.write(render(options.format, COLUMNS, batch.card.lines));
+
+      respond(out, options.format, {
+        json: batch ?? { load: fibreKg, candidates },
+        sections: [
+          wantsCandidates
+            ? { block: [['load', `${weight(fibreKg)} kg over ${lots.length} lots`]] }
+            : null,
+          wantsCandidates ? { table: { columns: CANDIDATE_COLUMNS, rows: candidates } } : null,
+          batch
+            ? {
+                block: [
+                  ['batch', batch.id],
+                  ['machine', `${machine.id} (${machine.type})`],
+                  [
+                    'load',
+                    `${weight(batch.fibreKg)} kg, ${percent(fillFactor(machine, batch.fibreKg))} of capacity`,
+                  ],
+                  ['bath', `${batch.litres} litres`],
+                  ['ratio asked', batch.plannedRatio.toFixed(2)],
+                  ['ratio given', batch.actualRatio.toFixed(2)],
+                  ['drift', percent(batch.ratioDrift)],
+                  ['re-dosed', batch.redosed ? 'yes, the grams per litre lines have moved' : 'no'],
+                ],
+              }
+            : null,
+          batch ? { table: { columns: COLUMNS, rows: batch.card.lines } } : null,
+        ],
+      });
     });
 }

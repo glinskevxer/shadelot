@@ -10,7 +10,7 @@
 import { CONFIDENCE, proposeSubstitutes } from '../../dyestuff/strength.js';
 import { find } from '../../dyestuff/catalogue.js';
 import { money, percent } from '../../report/format.js';
-import { render, renderRecord } from '../../report/table.js';
+import { respond } from '../report.js';
 import { CommandError } from '../exit.js';
 import { collect, numberFlag } from '../io.js';
 import { loadWorks } from '../works.js';
@@ -60,26 +60,6 @@ export function registerSubstituteCommand(program, { out }) {
         dose: options.dose === undefined ? null : options.dose * row.factor,
       }));
 
-      if (options.format === 'json') {
-        out.write(JSON.stringify({ original: original.code, candidates: withDose }, null, 2));
-        return;
-      }
-
-      out.write(
-        renderRecord([
-          ['article', `${original.code}  ${original.name}`],
-          ['supplier', original.supplier],
-          ['class', original.dyeClass],
-          ['colour index', original.colourIndex ?? 'not recorded'],
-          ['strength', `${original.strength}`],
-          ['price', money(original.pricePerKg)],
-        ])
-      );
-      out.write('');
-      if (withDose.length === 0) {
-        out.write('nothing in the catalogue shares this colour index');
-        return;
-      }
       const columns =
         options.dose === undefined
           ? COLUMNS
@@ -87,11 +67,32 @@ export function registerSubstituteCommand(program, { out }) {
               ...COLUMNS,
               { key: 'dose', heading: 'owf', align: 'right', format: (v) => v.toFixed(4) },
             ];
-      out.write(render(options.format, columns, withDose));
-      if (withDose.every((row) => row.confidence !== 'direct')) {
-        out.write('');
-        out.write('none of these is a direct swap, every one needs a lab dip first');
-      }
+
+      respond(out, options.format, {
+        json: { original: original.code, candidates: withDose },
+        sections: [
+          {
+            block: [
+              ['article', `${original.code}  ${original.name}`],
+              ['supplier', original.supplier],
+              ['class', original.dyeClass],
+              ['colour index', original.colourIndex ?? 'not recorded'],
+              ['strength', `${original.strength}`],
+              ['price', money(original.pricePerKg)],
+            ],
+          },
+          {
+            table: {
+              columns,
+              rows: withDose,
+              empty: 'nothing in the catalogue shares this colour index',
+            },
+          },
+          withDose.length > 0 && withDose.every((row) => row.confidence !== 'direct')
+            ? { note: 'none of these is a direct swap, every one needs a lab dip first' }
+            : null,
+        ],
+      });
     });
 }
 
