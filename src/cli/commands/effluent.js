@@ -15,7 +15,7 @@ import {
   totalDay,
 } from '../../effluent/load.js';
 import { percent } from '../../report/format.js';
-import { render, renderRecord } from '../../report/table.js';
+import { respond } from '../report.js';
 import { CommandError, dataError } from '../exit.js';
 import { numberFlag, readArray } from '../io.js';
 import { loadWorks } from '../works.js';
@@ -62,34 +62,33 @@ export function registerEffluentCommand(program, { out }) {
       const report = consentReport(consent, day, { ph: options.ph });
       const check = checkConsent(consent, day, { ph: options.ph });
 
-      if (options.format === 'json') {
-        out.write(JSON.stringify({ day, ...report }, null, 2));
-      } else {
-        const breached = new Set(check.breaches.map((breach) => breach.parameter));
-        out.write(
-          render(
-            options.format,
-            COLUMNS,
-            report.ranked.map((row) => ({
-              parameter: row.parameter,
-              value: row.used * consentLimit(consent, row.parameter),
-              limit: consentLimit(consent, row.parameter),
-              used: row.used,
-              state: breached.has(row.parameter) ? 'over' : 'inside',
-            }))
-          )
-        );
-        out.write('');
-        out.write(
-          renderRecord([
-            ['consent', consent.name],
-            ['batches', String(batches.length)],
-            ['tightest', `${report.tightest.parameter} at ${percent(report.tightest.used)}`],
-            ['ph', options.ph === undefined ? 'not read' : String(options.ph)],
-            ['verdict', report.compliant ? 'inside consent' : 'breached'],
-          ])
-        );
-      }
+      const breached = new Set(check.breaches.map((breach) => breach.parameter));
+      respond(out, options.format, {
+        json: { day, ...report },
+        sections: [
+          {
+            table: {
+              columns: COLUMNS,
+              rows: report.ranked.map((row) => ({
+                parameter: row.parameter,
+                value: row.used * consentLimit(consent, row.parameter),
+                limit: consentLimit(consent, row.parameter),
+                used: row.used,
+                state: breached.has(row.parameter) ? 'over' : 'inside',
+              })),
+            },
+          },
+          {
+            block: [
+              ['consent', consent.name],
+              ['batches', String(batches.length)],
+              ['tightest', `${report.tightest.parameter} at ${percent(report.tightest.used)}`],
+              ['ph', options.ph === undefined ? 'not read' : String(options.ph)],
+              ['verdict', report.compliant ? 'inside consent' : 'breached'],
+            ],
+          },
+        ],
+      });
 
       if (!report.compliant) {
         const names = check.breaches.map((breach) => breach.parameter).join(', ');

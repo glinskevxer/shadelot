@@ -10,7 +10,7 @@
 import { CAUSES, gradeRoll, makeFault, ourShare, pointsByCause } from '../../quality/defects.js';
 import { barreRisk } from '../../greige/beam.js';
 import { percent } from '../../report/format.js';
-import { render, renderRecord } from '../../report/table.js';
+import { respond } from '../report.js';
 import { CommandError, dataError } from '../exit.js';
 import { numberFlag, readShaped } from '../io.js';
 
@@ -65,32 +65,31 @@ export function registerQualityCommand(program, { out }) {
 
       const barre = document.rolls ? barreRisk(document.rolls) : null;
 
-      if (options.format === 'json') {
-        out.write(JSON.stringify({ ...graded, faults, causes: causeRows, barre }, null, 2));
-      } else {
-        out.write(
-          render(
-            options.format,
-            FAULT_COLUMNS,
-            faults.map((fault) => ({ ...fault, note: fault.note ?? '' }))
-          )
-        );
-        out.write('');
-        out.write(render(options.format, CAUSE_COLUMNS, causeRows));
-        out.write('');
-        out.write(
-          renderRecord([
-            ['roll', document.id],
-            ['size', `${document.lengthMetres} m at ${document.widthCm} cm`],
-            ['faults', String(faults.length)],
-            ['points per hundred', graded.score.toFixed(2)],
-            ['limit', String(options.limit)],
-            ['grade', graded.grade],
-            ['our share', percent(ourShare(faults))],
-            ['barre risk', barre ? `${barre.risk}, ${barre.reason}` : 'no beam data on the file'],
-          ])
-        );
-      }
+      respond(out, options.format, {
+        json: { ...graded, faults, causes: causeRows, barre },
+        sections: [
+          {
+            table: {
+              columns: FAULT_COLUMNS,
+              rows: faults.map((fault) => ({ ...fault, note: fault.note ?? '' })),
+              empty: 'no faults recorded on this roll',
+            },
+          },
+          { table: { columns: CAUSE_COLUMNS, rows: causeRows } },
+          {
+            block: [
+              ['roll', document.id],
+              ['size', `${document.lengthMetres} m at ${document.widthCm} cm`],
+              ['faults', String(faults.length)],
+              ['points per hundred', graded.score.toFixed(2)],
+              ['limit', String(options.limit)],
+              ['grade', graded.grade],
+              ['our share', percent(ourShare(faults))],
+              ['barre risk', barre ? `${barre.risk}, ${barre.reason}` : 'no beam data on the file'],
+            ],
+          },
+        ],
+      });
 
       if (graded.grade === 'second') {
         throw new CommandError(

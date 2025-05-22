@@ -14,7 +14,7 @@ import { buildCard } from '../../recipe/card.js';
 import { makeRecipe } from '../../recipe/recipe.js';
 import { findMachine } from '../../machine/register.js';
 import { money, percent } from '../../report/format.js';
-import { render, renderRecord } from '../../report/table.js';
+import { respond } from '../report.js';
 import { dataError } from '../exit.js';
 import { numberFlag, positiveFlag, readShaped } from '../io.js';
 import { loadWorks } from '../works.js';
@@ -77,34 +77,32 @@ export function registerCostCommand(program, { out }) {
         saleableKg: options.saleable,
       });
 
-      if (options.format === 'json') {
-        out.write(JSON.stringify({ ...costing, litres, waterNet: water.net }, null, 2));
-        return;
-      }
-
       const shares = new Map(costShares(costing).map((row) => [row.head, row.share]));
-      out.write(
-        render(
-          options.format,
-          COLUMNS,
-          COST_HEADS.map((head) => ({
-            head,
-            value: costing.heads[head],
-            share: shares.get(head) ?? 0,
-          }))
-        )
-      );
-      out.write('');
-      out.write(
-        renderRecord([
-          ['passes', String(costing.passes)],
-          ['bath', `${litres} litres`],
-          ['water', `${water.net} litres`],
-          ['total', money(costing.total)],
-          ['per kilo charged', money(costing.perKgCharged)],
-          ['per kilo saleable', money(costing.perKgSaleable)],
-          ['yield', percent(costing.yield)],
-        ])
-      );
+      respond(out, options.format, {
+        json: { ...costing, litres, waterNet: water.net },
+        sections: [
+          {
+            table: {
+              columns: COLUMNS,
+              rows: COST_HEADS.map((head) => ({
+                head,
+                value: costing.heads[head],
+                share: shares.get(head) ?? 0,
+              })),
+            },
+          },
+          {
+            block: [
+              ['passes', String(costing.passes)],
+              ['bath', `${litres} litres`],
+              ['water', `${water.net} litres`],
+              ['total', money(costing.total)],
+              ['per kilo charged', money(costing.perKgCharged)],
+              ['per kilo saleable', money(costing.perKgSaleable)],
+              ['yield', percent(costing.yield)],
+            ],
+          },
+        ],
+      });
     });
 }

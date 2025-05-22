@@ -113,7 +113,7 @@ describe('what the commands now share', () => {
         const text = readFileSync(join(directory, name), 'utf8');
         return text.includes("options.format === 'json'");
       });
-    expect(stragglers.length).toBeLessThanOrEqual(8);
+    expect(stragglers.length).toBeLessThanOrEqual(4);
   });
 
   it('leaves no command writing its own blank line between two tables', async () => {

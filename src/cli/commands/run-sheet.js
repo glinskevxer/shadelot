@@ -18,7 +18,7 @@ import {
 import { batchEnergy } from '../../utility/energy.js';
 import { findMachine } from '../../machine/register.js';
 import { duration, temperature } from '../../report/format.js';
-import { render, renderRecord } from '../../report/table.js';
+import { respond } from '../report.js';
 import { CommandError } from '../exit.js';
 import { positiveFlag, readShaped } from '../io.js';
 import { worksIfNamed } from '../works.js';
@@ -65,11 +65,6 @@ export function registerRunSheetCommand(program, { out }) {
         energy = batchEnergy(profile, { litres, machine });
       }
 
-      if (options.format === 'json') {
-        out.write(JSON.stringify({ profile: profile.id, steps, energy }, null, 2));
-        return;
-      }
-
       const summary = [
         ['profile', `${profile.id}  ${profile.name}`],
         ['starts at', temperature(profile.startAt)],
@@ -83,8 +78,10 @@ export function registerRunSheetCommand(program, { out }) {
         summary.push(['steam', `${energy.steamKgEquivalent.toFixed(0)} kg`]);
         summary.push(['motors', `${energy.motorKwh.toFixed(1)} kWh`]);
       }
-      out.write(renderRecord(summary));
-      out.write('');
-      out.write(render(options.format, COLUMNS, steps));
+
+      respond(out, options.format, {
+        json: { profile: profile.id, steps, energy },
+        sections: [{ block: summary }, { table: { columns: COLUMNS, rows: steps } }],
+      });
     });
 }
