@@ -11,6 +11,7 @@ import { registerCardCommand } from './card.js';
 import { registerCommandsCommand } from './commands-listing.js';
 import { registerCorrectCommand } from './correct.js';
 import { registerCostCommand } from './cost.js';
+import { registerDespatchCommand } from './despatch.js';
 import { registerDipCommand } from './dip.js';
 import { registerEffluentCommand } from './effluent.js';
 import { registerLibraryCommand } from './library.js';
@@ -31,6 +32,7 @@ const REGISTRARS = [
   registerCommandsCommand,
   registerCorrectCommand,
   registerCostCommand,
+  registerDespatchCommand,
   registerDipCommand,
   registerEffluentCommand,
   registerLibraryCommand,

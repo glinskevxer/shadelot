@@ -1,0 +1,9 @@
+[
+  { "id": "R-1204", "shade": "olive 4488", "metres": 312.4, "kg": 65.6, "batchId": "B25-00301" },
+  { "id": "R-1205", "shade": "olive 4488", "metres": 298.1, "kg": 62.6, "batchId": "B25-00301" },
+  { "id": "R-1206", "shade": "olive 4488", "metres": 305.8, "kg": 64.2, "batchId": "B25-00301" },
+  { "id": "R-1211", "shade": "olive 4488", "metres": 289.4, "kg": 60.8, "batchId": "B25-00302" },
+  { "id": "R-1212", "shade": "olive 4488", "metres": 301.2, "kg": 63.3, "batchId": "B25-00302" },
+  { "id": "R-1220", "shade": "navy 118", "metres": 318.9, "kg": 67.0, "batchId": "B25-00309" },
+  { "id": "R-1221", "shade": "navy 118", "metres": 294.6, "kg": 61.9, "batchId": "B25-00309" }
+]
