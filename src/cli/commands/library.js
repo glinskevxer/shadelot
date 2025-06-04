@@ -12,7 +12,7 @@ import { createLibrary, nearest, scaleToDepth } from '../../recipe/library.js';
 import { makeRecipe } from '../../recipe/recipe.js';
 import { formulaNames } from '../../colour/deltae.js';
 import { percent } from '../../report/format.js';
-import { render, renderRecord } from '../../report/table.js';
+import { respond } from '../report.js';
 import { dataError } from '../exit.js';
 import { numberFlag, readArray, readObject } from '../io.js';
 import { toReading } from '../readings.js';
@@ -102,35 +102,32 @@ export function registerLibraryCommand(program, { out }) {
         }
       }
 
-      if (options.format === 'json') {
-        out.write(JSON.stringify({ dips, recipes, scaled }, null, 2));
-        return;
-      }
-
-      out.write(renderRecord([['looking for', `L ${standard.L} a ${standard.a} b ${standard.b}`]]));
-      if (dips.length > 0) {
-        out.write('');
-        out.write(render(options.format, DIP_COLUMNS, dips));
-      } else if (options.dips) {
-        out.write('');
-        out.write('nothing in the dip library is close to this standard');
-      }
-      if (recipes.length > 0) {
-        out.write('');
-        out.write(render(options.format, RECIPE_COLUMNS, recipes));
-      }
-      if (scaled) {
-        out.write('');
-        out.write(
-          render(
-            options.format,
-            [
-              { key: 'code', heading: 'article' },
-              { key: 'owf', heading: 'owf', align: 'right', format: (v) => v.toFixed(4) },
-            ],
-            scaled.dyes
-          )
-        );
-      }
+      respond(out, options.format, {
+        json: { dips, recipes, scaled },
+        sections: [
+          { block: [['looking for', `L ${standard.L} a ${standard.a} b ${standard.b}`]] },
+          options.dips
+            ? {
+                table: {
+                  columns: DIP_COLUMNS,
+                  rows: dips,
+                  empty: 'nothing in the dip library is close to this standard',
+                },
+              }
+            : null,
+          { table: { columns: RECIPE_COLUMNS, rows: recipes } },
+          scaled
+            ? {
+                table: {
+                  columns: [
+                    { key: 'code', heading: 'article' },
+                    { key: 'owf', heading: 'owf', align: 'right', format: (v) => v.toFixed(4) },
+                  ],
+                  rows: scaled.dyes,
+                },
+              }
+            : null,
+        ],
+      });
     });
 }

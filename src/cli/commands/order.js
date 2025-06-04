@@ -16,7 +16,7 @@ import {
 import { deliver, makeOrder, progress } from '../../order/order.js';
 import { makeTolerance } from '../../colour/tolerance.js';
 import { percent, signed } from '../../report/format.js';
-import { render, renderRecord } from '../../report/table.js';
+import { respond } from '../report.js';
 import { CommandError, dataError } from '../exit.js';
 import { readShaped } from '../io.js';
 import { toReading } from '../readings.js';
@@ -97,28 +97,28 @@ export function registerOrderCommand(program, { out }) {
         ? shadeBand(continuity)
         : null;
 
-      if (options.format === 'json') {
-        out.write(JSON.stringify({ ...status, deliveries: rows, band }, null, 2));
-      } else {
-        out.write(render(options.format, COLUMNS, rows));
-        out.write('');
-        out.write(
-          renderRecord([
-            ['order', `${order.id}  ${order.customer}`],
-            ['shade', order.shade],
-            ['due', order.dueAt],
-            ['ordered', `${status.ordered} m`],
-            ['delivered', `${status.delivered} m over ${status.batches} batches`],
-            ['outstanding', `${status.outstanding} m`],
-            ['complete', percent(status.fraction)],
-            [
-              'shade band',
-              band ? `${signed(band.widest, 3)} at its widest` : 'nothing accepted yet',
+      respond(out, options.format, {
+        json: { ...status, deliveries: rows, band },
+        sections: [
+          { table: { columns: COLUMNS, rows, empty: 'nothing delivered against this order yet' } },
+          {
+            block: [
+              ['order', `${order.id}  ${order.customer}`],
+              ['shade', order.shade],
+              ['due', order.dueAt],
+              ['ordered', `${status.ordered} m`],
+              ['delivered', `${status.delivered} m over ${status.batches} batches`],
+              ['outstanding', `${status.outstanding} m`],
+              ['complete', percent(status.fraction)],
+              [
+                'shade band',
+                band ? `${signed(band.widest, 3)} at its widest` : 'nothing accepted yet',
+              ],
+              ['state', order.state],
             ],
-            ['state', order.state],
-          ])
-        );
-      }
+          },
+        ],
+      });
 
       const rejected = rejectedBatches(continuity);
       if (rejected.length > 0) {

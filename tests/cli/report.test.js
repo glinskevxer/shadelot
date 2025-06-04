@@ -102,7 +102,7 @@ describe('the pair helper', () => {
 });
 
 describe('what the commands now share', () => {
-  it('is being moved onto, with the count of the ones left going down', async () => {
+  it('is used by every command but the one that prints its own charts', async () => {
     const { readFileSync, readdirSync } = await import('node:fs');
     const { join } = await import('node:path');
     const { fileURLToPath } = await import('node:url');
@@ -113,7 +113,7 @@ describe('what the commands now share', () => {
         const text = readFileSync(join(directory, name), 'utf8');
         return text.includes("options.format === 'json'");
       });
-    expect(stragglers.length).toBeLessThanOrEqual(4);
+    expect(stragglers.length).toBeLessThanOrEqual(1);
   });
 
   it('leaves no command writing its own blank line between two tables', async () => {

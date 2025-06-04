@@ -16,7 +16,7 @@ import {
   valueOnHand,
 } from '../../inventory/stock.js';
 import { money, weight } from '../../report/format.js';
-import { render, renderRecord } from '../../report/table.js';
+import { respond } from '../report.js';
 import { CommandError, dataError } from '../exit.js';
 import { readArray, readObject } from '../io.js';
 
@@ -91,26 +91,20 @@ export function registerStockCommand(program, { out }) {
         });
       }
 
-      if (options.format === 'json') {
-        out.write(JSON.stringify({ lots, short, needs, value: valueOnHand(stock) }, null, 2));
-      } else {
-        out.write(render(options.format, LOT_COLUMNS, lots));
-        out.write('');
-        out.write(
-          renderRecord([
-            ['lots', String(lots.length)],
-            ['value', money(valueOnHand(stock, options.code))],
-          ])
-        );
-        if (needs.length > 0) {
-          out.write('');
-          out.write(render(options.format, NEED_COLUMNS, needs));
-        }
-        if (short.length > 0) {
-          out.write('');
-          out.write(render(options.format, SHORT_COLUMNS, short));
-        }
-      }
+      respond(out, options.format, {
+        json: { lots, short, needs, value: valueOnHand(stock) },
+        sections: [
+          { table: { columns: LOT_COLUMNS, rows: lots, empty: 'nothing on hand' } },
+          {
+            block: [
+              ['lots', String(lots.length)],
+              ['value', money(valueOnHand(stock, options.code))],
+            ],
+          },
+          { table: { columns: NEED_COLUMNS, rows: needs } },
+          { table: { columns: SHORT_COLUMNS, rows: short } },
+        ],
+      });
 
       if (needs.some((need) => need.state === 'short')) {
         const names = needs.filter((need) => need.state === 'short').map((need) => need.code);
