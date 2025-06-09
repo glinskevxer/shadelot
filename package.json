@@ -1,6 +1,6 @@
 {
   "name": "shadelot",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "description": "Batch, recipe and shade control for a commission textile dyehouse",
   "keywords": [
@@ -29,7 +29,8 @@
     "format:check": "prettier --check .",
     "smoke": "bash scripts/smoke.sh",
     "coverage": "vitest run --coverage",
-    "check": "npm run lint && npm run format:check && npm test && npm run smoke"
+    "check": "npm run lint && npm run format:check && npm test && npm run smoke && npm run release:check",
+    "release:check": "bash scripts/release-check.sh"
   },
   "devDependencies": {
     "@eslint/js": "9.19.0",
