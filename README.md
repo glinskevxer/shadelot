@@ -25,11 +25,20 @@ recipe has thirty numbers in it. The `examples/` folder holds a working set:
 ```
 node bin/shadelot.js card -w examples/works.json -r examples/recipe-olive.json -l 200
 node bin/shadelot.js plan -w examples/works.json -r examples/recipe-olive.json -g examples/lots.json -m JET-4
+node bin/shadelot.js loadout -w examples/works.json -g examples/lots.json
 node bin/shadelot.js run-sheet -p examples/profile-reactive-60.json -w examples/works.json -m JET-4
 node bin/shadelot.js sequence -d examples/day-sequence.json
+node bin/shadelot.js dip -s examples/dip-series.json
+node bin/shadelot.js order -o examples/order.json
+node bin/shadelot.js quality -r examples/roll-faults.json
+node bin/shadelot.js despatch -r examples/finished-rolls.json -o O25-0900
 node bin/shadelot.js effluent -w examples/works.json -d examples/day-batches.json
+node bin/shadelot.js analyse -m examples/month-batches.json --hours 480
 node bin/shadelot.js works -w examples/works.json
 ```
+
+Starting from nothing, `shadelot init -w works.json` writes a works file every
+command will accept, and refuses to write over one that is already there.
 
 ## The works file
 
@@ -90,6 +99,14 @@ unwearable garment.
 
 **Exit codes are an interface.** A works runs this out of cron. The codes are
 pinned in `src/cli/exit.js` and the message text is not.
+
+**A standard is never edited.** A customer standard is a piece of cloth in a
+drawer and it fades. Re-measuring adds a reading; the drift between the first
+and the last is what tells you whether to still trust it.
+
+**Filling every machine to the top is the wrong objective.** It gives the best
+fill factor and the worst liquor ratios. `shadelot loadout` scores both and lets
+the works weight them.
 
 ## Testing
 

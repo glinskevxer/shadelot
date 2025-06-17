@@ -109,6 +109,9 @@ jobs:
           node bin/shadelot.js works -w examples/works.json
           node bin/shadelot.js sequence -d examples/day-sequence.json
           node bin/shadelot.js analyse -m examples/month-batches.json --hours 480
+          node bin/shadelot.js loadout -w examples/works.json -g examples/lots.json
+          node bin/shadelot.js despatch -r examples/finished-rolls.json -o O25-0900
+          node bin/shadelot.js library -s examples/standard-olive.json --dips examples/dip-library.json
           node bin/shadelot.js commands
 
       - name: every command is described in the listing

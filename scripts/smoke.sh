@@ -54,6 +54,15 @@ check "quality" node bin/shadelot.js quality -r examples/roll-faults.json
 check "analyse" node bin/shadelot.js analyse -m examples/month-batches.json --hours 480
 check "metamerism" node bin/shadelot.js metamerism -s examples/standard-set.json -b examples/batch-set.json
 check "correct" node bin/shadelot.js correct -s examples/standard-olive.json -b examples/batch-olive.json --strength 0.94
+check "library" node bin/shadelot.js library -s examples/standard-olive.json --dips examples/dip-library.json
+check "despatch" node bin/shadelot.js despatch -r examples/finished-rolls.json -o O25-0900
+check "loadout" node bin/shadelot.js loadout -w examples/works.json -g examples/lots.json
+
+echo "smoke: init writes a works every command will take"
+starter="$(mktemp -d)/works.json"
+check "init" node bin/shadelot.js init -w "$starter"
+check "the works it wrote reads back" node bin/shadelot.js works -w "$starter"
+expect_code "init will not write over one" 4 node bin/shadelot.js init -w "$starter"
 
 echo "smoke: the exit codes are the interface"
 expect_code "unknown command is a usage error" 2 node bin/shadelot.js nonsense
