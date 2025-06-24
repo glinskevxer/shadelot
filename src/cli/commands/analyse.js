@@ -13,6 +13,7 @@ import { bar, compareCuts, pareto } from '../../analysis/pareto.js';
 import { controlLimits, diagnose, signalsIn } from '../../analysis/control.js';
 import { histogram, histogramLines, markedLine } from '../../report/chart.js';
 import { byBatch, byWeight, failureModes } from '../../quality/rft.js';
+import { assessWorks, needsAttention } from '../../analysis/benchmark.js';
 import { money, percent } from '../../report/format.js';
 import { render, renderRecord } from '../../report/table.js';
 import { dataError } from '../exit.js';
@@ -24,6 +25,15 @@ const SPLIT_COLUMNS = (key) => [
   { key: 'saleableKg', heading: 'kg', align: 'right', format: (v) => v.toFixed(0) },
   { key: 'rightFirstTime', heading: 'rft', align: 'right', format: (v) => percent(v) },
   { key: 'costPerSaleableKg', heading: 'per kg', align: 'right', format: (v) => money(v) },
+];
+
+const BENCHMARK_COLUMNS = [
+  { key: 'measure', heading: 'measure' },
+  { key: 'value', heading: 'works', align: 'right', format: (v) => v.toFixed(2) },
+  { key: 'typical', heading: 'typical', align: 'right', format: (v) => v.toFixed(2) },
+  { key: 'best', heading: 'best', align: 'right', format: (v) => v.toFixed(2) },
+  { key: 'position', heading: 'in band', align: 'right', format: (v) => percent(v) },
+  { key: 'verdict', heading: 'verdict' },
 ];
 
 const PARETO_COLUMNS = [
@@ -77,6 +87,15 @@ export function registerAnalyseCommand(program, { out }) {
           : [];
       const cuts = causes.length > 0 ? compareCuts(failed, options.cause) : null;
 
+      const benchmarkValues = {
+        litresPerKg: month.litresPerKg,
+        rightFirstTime: byWeight(batches),
+        costPerKg: month.costPerSaleableKg,
+      };
+      if (month.utilisation !== null) benchmarkValues.utilisation = month.utilisation;
+      const benchmark = assessWorks(benchmarkValues);
+      const attention = needsAttention(benchmark);
+
       const differences = batches
         .map((batch) => batch.shadeDifference)
         .filter((value) => typeof value === 'number');
@@ -85,7 +104,11 @@ export function registerAnalyseCommand(program, { out }) {
 
       if (options.format === 'json') {
         out.write(
-          JSON.stringify({ month, rework, split, worst, causes, cuts, chart, limits }, null, 2)
+          JSON.stringify(
+            { month, rework, split, worst, causes, cuts, chart, limits, benchmark, attention },
+            null,
+            2
+          )
         );
         return;
       }
@@ -107,6 +130,23 @@ export function registerAnalyseCommand(program, { out }) {
       );
       out.write('');
       out.write(render(options.format, SPLIT_COLUMNS(options.split), split));
+      out.write('');
+      out.write(render(options.format, BENCHMARK_COLUMNS, benchmark.rows));
+      out.write('');
+      out.write(
+        renderRecord([
+          [
+            'against the trade',
+            `worst on ${benchmark.worst.measure}, best on ${benchmark.best.measure}`,
+          ],
+          [
+            'worth a project',
+            attention.needed
+              ? `yes, on ${attention.behind.join(' and ')}`
+              : 'no, nothing is far behind',
+          ],
+        ])
+      );
       if (causes.length > 0) {
         out.write('');
         out.write(render(options.format, PARETO_COLUMNS, causes));

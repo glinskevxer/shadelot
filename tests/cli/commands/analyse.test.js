@@ -167,3 +167,51 @@ describe('the shade chart it draws', () => {
     expect(io.out.text()).not.toMatch(/shade run/);
   });
 });
+
+describe('the benchmark it prints', () => {
+  it('compares the works against the published bands', async () => {
+    const io = capture();
+    await run(['analyse', '-m', monthPath, '--hours', '480'], io);
+    const text = io.out.text();
+    expect(text).toMatch(/litresPerKg/);
+    expect(text).toMatch(/rightFirstTime/);
+    expect(text).toMatch(/in band/);
+  });
+
+  it('says which measure is worst and which is best', async () => {
+    const io = capture();
+    await run(['analyse', '-m', monthPath], io);
+    expect(io.out.text()).toMatch(/against the trade\s+worst on \w+, best on \w+/);
+  });
+
+  it('leaves utilisation out when nobody said how many hours there were', async () => {
+    const io = capture();
+    await run(['analyse', '-m', monthPath, '--format', 'json'], io);
+    const measures = JSON.parse(io.out.text()).benchmark.rows.map((row) => row.measure);
+    expect(measures).not.toContain('utilisation');
+  });
+
+  it('puts it in when they did', async () => {
+    const io = capture();
+    await run(['analyse', '-m', monthPath, '--hours', '480', '--format', 'json'], io);
+    const measures = JSON.parse(io.out.text()).benchmark.rows.map((row) => row.measure);
+    expect(measures).toContain('utilisation');
+  });
+
+  it('says whether it is worth a project', async () => {
+    const io = capture();
+    await run(['analyse', '-m', monthPath, '--format', 'json'], io);
+    const attention = JSON.parse(io.out.text()).attention;
+    expect(typeof attention.needed).toBe('boolean');
+    expect(Array.isArray(attention.behind)).toBe(true);
+  });
+
+  it('orders the measures worst first, which is where to spend', async () => {
+    const io = capture();
+    await run(['analyse', '-m', monthPath, '--hours', '480', '--format', 'json'], io);
+    const rows = JSON.parse(io.out.text()).benchmark.rows;
+    for (let i = 1; i < rows.length; i += 1) {
+      expect(rows[i - 1].position).toBeLessThanOrEqual(rows[i].position);
+    }
+  });
+});
