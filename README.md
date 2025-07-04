@@ -108,6 +108,12 @@ and the last is what tells you whether to still trust it.
 fill factor and the worst liquor ratios. `shadelot loadout` scores both and lets
 the works weight them.
 
+## Where to start reading
+
+[docs/a-batch-end-to-end.md](docs/a-batch-end-to-end.md) follows one batch through
+the whole program in the order the floor takes it, naming the module that does
+each piece of arithmetic and the command that prints it.
+
 ## Testing
 
 ```
