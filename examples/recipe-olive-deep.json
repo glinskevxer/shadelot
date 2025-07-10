@@ -1,0 +1,16 @@
+{
+  "id": "R25-00092",
+  "name": "Kestrel olive deep",
+  "process": "exhaust",
+  "substrate": "cotton poplin 140gsm",
+  "liquorRatio": 8,
+  "dyes": [
+    { "code": "RY-145-ACME", "owf": 2.48 },
+    { "code": "RR-195-ACME", "owf": 0.62 },
+    { "code": "RB-19-ACME", "owf": 1.36 }
+  ],
+  "auxiliaries": [
+    { "code": "SEQ-2", "dose": 0.5 },
+    { "code": "WET-4", "dose": 1 }
+  ]
+}
