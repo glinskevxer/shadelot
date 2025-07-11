@@ -102,7 +102,7 @@ describe('the pair helper', () => {
 });
 
 describe('what the commands now share', () => {
-  it('is used by every command but the one that prints its own charts', async () => {
+  it('is used by every command without exception', async () => {
     const { readFileSync, readdirSync } = await import('node:fs');
     const { join } = await import('node:path');
     const { fileURLToPath } = await import('node:url');
@@ -113,7 +113,7 @@ describe('what the commands now share', () => {
         const text = readFileSync(join(directory, name), 'utf8');
         return text.includes("options.format === 'json'");
       });
-    expect(stragglers.length).toBeLessThanOrEqual(1);
+    expect(stragglers, `still branching on the format: ${stragglers.join(', ')}`).toEqual([]);
   });
 
   it('leaves no command writing its own blank line between two tables', async () => {
@@ -126,6 +126,35 @@ describe('what the commands now share', () => {
       if (text.includes('respond(out')) {
         expect(text.includes("out.write('');"), `${name} writes its own blank line`).toBe(false);
       }
+    }
+  });
+});
+
+describe('what every command now shares', () => {
+  it('reaches the renderer only through the shared answer', async () => {
+    const { readFileSync, readdirSync } = await import('node:fs');
+    const { join } = await import('node:path');
+    const { fileURLToPath } = await import('node:url');
+    const directory = fileURLToPath(new URL('../../src/cli/commands', import.meta.url));
+    const offenders = readdirSync(directory)
+      .filter(
+        (name) => name.endsWith('.js') && name !== 'index.js' && name !== 'commands-listing.js'
+      )
+      .filter((name) =>
+        readFileSync(join(directory, name), 'utf8').includes("from '../../report/table.js'")
+      );
+    expect(offenders, `still rendering directly: ${offenders.join(', ')}`).toEqual([]);
+  });
+
+  it('writes to the output pair and never to the process', async () => {
+    const { readFileSync, readdirSync } = await import('node:fs');
+    const { join } = await import('node:path');
+    const { fileURLToPath } = await import('node:url');
+    const directory = fileURLToPath(new URL('../../src/cli/commands', import.meta.url));
+    for (const name of readdirSync(directory).filter((entry) => entry.endsWith('.js'))) {
+      const text = readFileSync(join(directory, name), 'utf8');
+      expect(text.includes('process.stdout'), name).toBe(false);
+      expect(text.includes('console.'), name).toBe(false);
     }
   });
 });

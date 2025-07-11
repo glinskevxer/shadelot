@@ -15,7 +15,7 @@ import { histogram, histogramLines, markedLine } from '../../report/chart.js';
 import { byBatch, byWeight, failureModes } from '../../quality/rft.js';
 import { assessWorks, needsAttention } from '../../analysis/benchmark.js';
 import { money, percent } from '../../report/format.js';
-import { render, renderRecord } from '../../report/table.js';
+import { respond } from '../report.js';
 import { dataError } from '../exit.js';
 import { numberFlag, readArray } from '../io.js';
 
@@ -102,94 +102,100 @@ export function registerAnalyseCommand(program, { out }) {
       const chart = differences.length >= 2 ? signalsIn(differences) : null;
       const limits = chart ? controlLimits(differences) : null;
 
-      if (options.format === 'json') {
-        out.write(
-          JSON.stringify(
-            { month, rework, split, worst, causes, cuts, chart, limits, benchmark, attention },
-            null,
-            2
-          )
-        );
-        return;
-      }
+      const marked = chart ? markedLine(differences, chart.signals, { width: 48 }) : null;
 
-      out.write(
-        renderRecord([
-          ['batches', String(month.batches)],
-          ['cloth', `${month.saleableKg.toFixed(0)} kg saleable of ${month.fibreKg.toFixed(0)}`],
-          [
-            'right first time',
-            `${percent(byBatch(batches))} by batch, ${percent(byWeight(batches))} by weight`,
-          ],
-          ['cost per kilo', money(month.costPerSaleableKg)],
-          ['water per kilo', `${month.litresPerKg.toFixed(1)} litres`],
-          ['machine hours', month.machineHours.toFixed(1)],
-          ['utilisation', month.utilisation === null ? 'not stated' : percent(month.utilisation)],
-          ['reworking', `${rework.extraPasses} extra passes, ${money(rework.cost)}`],
-        ])
-      );
-      out.write('');
-      out.write(render(options.format, SPLIT_COLUMNS(options.split), split));
-      out.write('');
-      out.write(render(options.format, BENCHMARK_COLUMNS, benchmark.rows));
-      out.write('');
-      out.write(
-        renderRecord([
-          [
-            'against the trade',
-            `worst on ${benchmark.worst.measure}, best on ${benchmark.best.measure}`,
-          ],
-          [
-            'worth a project',
-            attention.needed
-              ? `yes, on ${attention.behind.join(' and ')}`
-              : 'no, nothing is far behind',
-          ],
-        ])
-      );
-      if (causes.length > 0) {
-        out.write('');
-        out.write(render(options.format, PARETO_COLUMNS, causes));
-        out.write('');
-        out.write(renderRecord([['cuts', cuts.note]]));
-      }
-      if (chart) {
-        const marked = markedLine(differences, chart.signals, { width: 48 });
-        out.write('');
-        out.write(
-          renderRecord([
-            ['shade run', marked.line],
-            ['signals', marked.marks.trim() === '' ? 'none' : marked.marks],
-            ['centre', chart.limits.centre.toFixed(3)],
-            ['limits', `${chart.limits.lower.toFixed(3)} to ${chart.limits.upper.toFixed(3)}`],
-          ])
-        );
-        out.write('');
-        for (const line of histogramLines(histogram(differences, { bins: 8, width: 24 }), {
-          places: 3,
-        })) {
-          out.write(line);
-        }
-      }
-
-      out.write('');
-      out.write(
-        renderRecord([
-          [
-            'failure modes',
-            failureModes(batches)
-              .map((row) => `${row.outcome} ${row.count}`)
-              .join(', ') || 'none',
-          ],
-          [
-            'shade chart',
-            chart ? diagnose(differences, options.tolerance) : 'no readings on the batches',
-          ],
-          [
-            'dearest batch',
-            worst.length > 0 ? `${worst[0].id} at ${money(worst[0].perKg)} a kilo` : 'none',
-          ],
-        ])
-      );
+      respond(out, options.format, {
+        json: {
+          month,
+          rework,
+          split,
+          worst,
+          causes,
+          cuts,
+          chart,
+          limits,
+          benchmark,
+          attention,
+        },
+        sections: [
+          {
+            block: [
+              ['batches', String(month.batches)],
+              [
+                'cloth',
+                `${month.saleableKg.toFixed(0)} kg saleable of ${month.fibreKg.toFixed(0)}`,
+              ],
+              [
+                'right first time',
+                `${percent(byBatch(batches))} by batch, ${percent(byWeight(batches))} by weight`,
+              ],
+              ['cost per kilo', money(month.costPerSaleableKg)],
+              ['water per kilo', `${month.litresPerKg.toFixed(1)} litres`],
+              ['machine hours', month.machineHours.toFixed(1)],
+              [
+                'utilisation',
+                month.utilisation === null ? 'not stated' : percent(month.utilisation),
+              ],
+              ['reworking', `${rework.extraPasses} extra passes, ${money(rework.cost)}`],
+            ],
+          },
+          { table: { columns: SPLIT_COLUMNS(options.split), rows: split } },
+          { table: { columns: BENCHMARK_COLUMNS, rows: benchmark.rows } },
+          {
+            block: [
+              [
+                'against the trade',
+                `worst on ${benchmark.worst.measure}, best on ${benchmark.best.measure}`,
+              ],
+              [
+                'worth a project',
+                attention.needed
+                  ? `yes, on ${attention.behind.join(' and ')}`
+                  : 'no, nothing is far behind',
+              ],
+            ],
+          },
+          { table: { columns: PARETO_COLUMNS, rows: causes } },
+          causes.length > 0 ? { block: [['cuts', cuts.note]] } : null,
+          marked
+            ? {
+                block: [
+                  ['shade run', marked.line],
+                  ['signals', marked.marks.trim() === '' ? 'none' : marked.marks],
+                  ['centre', chart.limits.centre.toFixed(3)],
+                  [
+                    'limits',
+                    `${chart.limits.lower.toFixed(3)} to ${chart.limits.upper.toFixed(3)}`,
+                  ],
+                ],
+              }
+            : null,
+          marked
+            ? {
+                lines: histogramLines(histogram(differences, { bins: 8, width: 24 }), {
+                  places: 3,
+                }),
+              }
+            : null,
+          {
+            block: [
+              [
+                'failure modes',
+                failureModes(batches)
+                  .map((row) => `${row.outcome} ${row.count}`)
+                  .join(', ') || 'none',
+              ],
+              [
+                'shade chart',
+                chart ? diagnose(differences, options.tolerance) : 'no readings on the batches',
+              ],
+              [
+                'dearest batch',
+                worst.length > 0 ? `${worst[0].id} at ${money(worst[0].perKg)} a kilo` : 'none',
+              ],
+            ],
+          },
+        ],
+      });
     });
 }
