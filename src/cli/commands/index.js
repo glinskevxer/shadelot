@@ -25,6 +25,7 @@ import { registerReuseCommand } from './reuse.js';
 import { registerRunSheetCommand } from './run-sheet.js';
 import { registerSequenceCommand } from './sequence.js';
 import { registerShadeCommand } from './shade.js';
+import { registerStandardsCommand } from './standards.js';
 import { registerStockCommand } from './stock.js';
 import { registerSubstituteCommand } from './substitute.js';
 import { registerWorksCommand } from './works.js';
@@ -49,6 +50,7 @@ const REGISTRARS = [
   registerRunSheetCommand,
   registerSequenceCommand,
   registerShadeCommand,
+  registerStandardsCommand,
   registerStockCommand,
   registerSubstituteCommand,
   registerWorksCommand,

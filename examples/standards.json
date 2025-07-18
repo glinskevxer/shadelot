@@ -1,0 +1,36 @@
+[
+  {
+    "id": "S25-0044",
+    "name": "olive 4488",
+    "customer": "Kestrel Apparel",
+    "source": "customer",
+    "substrate": "cotton poplin 140gsm",
+    "remeasureMonths": 6,
+    "readings": [
+      { "at": "2024-03-04", "reading": { "L": 52.14, "a": -14.32, "b": 22.68 }, "by": "j.hollis" },
+      { "at": "2024-09-06", "reading": { "L": 52.19, "a": -14.3, "b": 22.66 }, "by": "j.hollis" },
+      { "at": "2025-03-11", "reading": { "L": 52.24, "a": -14.28, "b": 22.63 }, "by": "a.nash" }
+    ]
+  },
+  {
+    "id": "S25-0051",
+    "name": "navy 118",
+    "customer": "Redgate Samples",
+    "source": "previous-bulk",
+    "substrate": "cotton poplin 140gsm",
+    "remeasureMonths": 12,
+    "readings": [
+      { "at": "2023-11-20", "reading": { "L": 28.4, "a": 2.1, "b": -24.8 } },
+      { "at": "2025-01-08", "reading": { "L": 30.9, "a": 3.4, "b": -22.1 } }
+    ]
+  },
+  {
+    "id": "S24-0318",
+    "name": "sage 221",
+    "customer": "Marlow Uniforms",
+    "source": "customer",
+    "remeasureMonths": 6,
+    "retired": true,
+    "readings": [{ "at": "2023-06-02", "reading": { "L": 52.9, "a": -14.9, "b": 23.4 } }]
+  }
+]
