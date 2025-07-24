@@ -73,6 +73,7 @@ export * as reuse from './utility/reuse.js';
 export * as recovery from './utility/recovery.js';
 export * as cost from './cost/batch.js';
 export * as effluent from './effluent/load.js';
+export * as treatment from './effluent/treatment.js';
 export * as stock from './inventory/stock.js';
 export * as shelflife from './inventory/shelflife.js';
 
