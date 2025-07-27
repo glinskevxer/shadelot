@@ -57,6 +57,8 @@ check "correct" node bin/shadelot.js correct -s examples/standard-olive.json -b 
 check "library" node bin/shadelot.js library -s examples/standard-olive.json --dips examples/dip-library.json
 check "despatch" node bin/shadelot.js despatch -r examples/finished-rolls.json -o O25-0900
 check "loadout" node bin/shadelot.js loadout -w examples/works.json -g examples/lots.json
+check "reuse" node bin/shadelot.js reuse -w examples/works.json --previous examples/recipe-olive.json --next examples/recipe-olive-deep.json
+expect_code "standards flags a drifted one" 5 node bin/shadelot.js standards -s examples/standards.json --today 2025-05-01
 
 echo "smoke: init writes a works every command will take"
 starter="$(mktemp -d)/works.json"

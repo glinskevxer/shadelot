@@ -42,7 +42,7 @@ export function registerPlanCommand(program, { out }) {
     .description('put a set of lots on a machine and show what it will actually run')
     .requiredOption('-w, --works <path>', 'the works file')
     .requiredOption('-r, --recipe <path>', 'the recipe file')
-    .requiredOption('-g, --lots <path>', 'the greige lots file')
+    .requiredOption('-g, --greige <path>', 'the greige lots file')
     .option('-m, --machine <id>', 'the machine to plan onto')
     .option('-b, --batch <id>', 'the batch number', 'B00-00000')
     .option('--candidates', 'list every machine and whether the load fits')
@@ -53,7 +53,7 @@ export function registerPlanCommand(program, { out }) {
         await readShaped(options.recipe, 'recipe', { what: 'recipe file' }),
         works
       );
-      const lots = await readArray(options.lots, { what: 'lots file' });
+      const lots = await readArray(options.greige, { what: 'lots file' });
       const fibreKg = lots.reduce((sum, lot) => sum + Number(lot.mass ?? 0), 0);
       if (!(fibreKg > 0)) {
         throw new CommandError('the lots file totals no cloth at all', 'invalidData');

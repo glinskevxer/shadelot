@@ -35,7 +35,7 @@ export function registerLoadoutCommand(program, { out }) {
     .command('loadout')
     .description('put a day of lots onto the machines and show the compromise it made')
     .requiredOption('-w, --works <path>', 'the works file')
-    .requiredOption('-g, --lots <path>', 'the lots file')
+    .requiredOption('-g, --greige <path>', 'the lots file')
     .option('--ratio <value>', 'the liquor ratio the recipes want', positiveFlag('--ratio'), 8)
     .option(
       '--fill-weight <value>',
@@ -48,7 +48,7 @@ export function registerLoadoutCommand(program, { out }) {
     .option('--format <format>', 'table or json', 'table')
     .action(async (options) => {
       const works = await loadWorks(options.works);
-      const rows = await readArray(options.lots, { what: 'lots file' });
+      const rows = await readArray(options.greige, { what: 'lots file' });
       if (rows.length === 0) {
         throw dataError('the lots file holds nothing to load');
       }

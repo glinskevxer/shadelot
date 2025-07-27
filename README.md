@@ -34,6 +34,9 @@ node bin/shadelot.js quality -r examples/roll-faults.json
 node bin/shadelot.js despatch -r examples/finished-rolls.json -o O25-0900
 node bin/shadelot.js effluent -w examples/works.json -d examples/day-batches.json
 node bin/shadelot.js analyse -m examples/month-batches.json --hours 480
+node bin/shadelot.js library -s examples/standard-olive.json --dips examples/dip-library.json
+node bin/shadelot.js reuse -w examples/works.json --previous examples/recipe-olive.json --next examples/recipe-olive-deep.json
+node bin/shadelot.js standards -s examples/standards.json --today 2025-05-01 --limit 20
 node bin/shadelot.js works -w examples/works.json
 ```
 
@@ -107,6 +110,14 @@ and the last is what tells you whether to still trust it.
 **Filling every machine to the top is the wrong objective.** It gives the best
 fill factor and the worst liquor ratios. `shadelot loadout` scores both and lets
 the works weight them.
+
+**A bath can be reused going darker inside one family, and only then.** It
+carries the last shade forward, so `shadelot reuse` prints the saving next to the
+verdict: a refusal with no number against it gets overruled at eleven at night.
+
+**Treatment is prescribed from what is actually over.** Coagulation drops the
+colour, biological treatment drops the demand, and a works that buys the wrong
+one has a large tank that fixes the wrong number.
 
 ## Where to start reading
 

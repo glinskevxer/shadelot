@@ -13,6 +13,7 @@ import { buildProgram, describeCommands, run } from '../../src/cli/program.js';
 
 const capture = () => ({ out: createOutput(), err: createOutput() });
 const commands = describeCommands(buildProgram(capture()));
+const commandNames = commands.map((row) => row.command);
 
 describe('the listing itself', () => {
   it('is not empty and has no duplicates', () => {
@@ -79,4 +80,87 @@ describe('the commands that read files', () => {
     const code = await run([command.command, flag, '/nowhere/missing.json'], io);
     expect([2, 3]).toContain(code);
   });
+});
+
+describe('the smoke test and the workflow', () => {
+  const readFile = async (path) => {
+    const { readFileSync } = await import('node:fs');
+    const { join } = await import('node:path');
+    const { fileURLToPath } = await import('node:url');
+    const root = fileURLToPath(new URL('../..', import.meta.url)).replace(/\/$/, '');
+    return readFileSync(join(root, path), 'utf8');
+  };
+
+  it('runs most of the commands between them', async () => {
+    const smoke = await readFile('scripts/smoke.sh');
+    const workflow = await readFile('.github/workflows/ci.yml');
+    const both = `${smoke}\n${workflow}`;
+    const covered = commandNames.filter((command) =>
+      new RegExp(`shadelot\\.js ${command}\\b`).test(both)
+    );
+    expect(covered.length / commandNames.length).toBeGreaterThan(0.85);
+  });
+
+  it('names no command that does not exist', async () => {
+    const smoke = await readFile('scripts/smoke.sh');
+    // The smoke test deliberately runs one command that does not exist, to check
+    // the usage exit code, so that one is expected to be missing and no other.
+    const named = [...smoke.matchAll(/shadelot\.js ([a-z-]+)/g)].map((match) => match[1]);
+    const unknown = [...new Set(named)].filter(
+      (name) => !name.startsWith('--') && !commandNames.includes(name)
+    );
+    expect(unknown).toEqual(['nonsense']);
+  });
+
+  it('names no example file that is not there', async () => {
+    const { existsSync } = await import('node:fs');
+    const { join } = await import('node:path');
+    const { fileURLToPath } = await import('node:url');
+    const root = fileURLToPath(new URL('../..', import.meta.url)).replace(/\/$/, '');
+    const workflow = await readFile('.github/workflows/ci.yml');
+    for (const match of workflow.matchAll(/examples\/[a-z0-9-]+\.json/g)) {
+      expect(existsSync(join(root, match[0])), match[0]).toBe(true);
+    }
+  });
+
+  it('checks the exit codes rather than only that things ran', async () => {
+    const smoke = await readFile('scripts/smoke.sh');
+    expect([...smoke.matchAll(/expect_code /g)].length).toBeGreaterThanOrEqual(4);
+  });
+});
+
+describe('what a command may and may not do', () => {
+  it.each(commands)('$command takes its inputs as files or short flags', (command) => {
+    for (const flags of command.options) {
+      expect(flags.length).toBeLessThan(48);
+      expect(flags).not.toMatch(/\s{2,}/);
+    }
+  });
+
+  it.each(commands)('$command names no option twice', (command) => {
+    const longs = command.options
+      .map((flags) => flags.split(/[ ,]+/).find((part) => part.startsWith('--')))
+      .filter(Boolean);
+    expect(new Set(longs).size).toBe(longs.length);
+  });
+
+  it.each(commands)('$command spells its format flag the same as the rest', (command) => {
+    const format = command.options.find((flags) => flags.includes('--format'));
+    if (!format) return;
+    expect(format).toBe('--format <format>');
+  });
+
+  it.each(commands)(
+    '$command gives every short flag the first letter of its own name',
+    (command) => {
+      for (const flags of command.options) {
+        const short = flags.split(/[ ,]+/).find((part) => /^-[a-z]$/.test(part));
+        const long = flags.split(/[ ,]+/).find((part) => part.startsWith('--'));
+        if (!short) continue;
+        expect(long.slice(2, 3), `${command.command} uses ${short} for ${long}`).toBe(
+          short.slice(1)
+        );
+      }
+    }
+  );
 });
