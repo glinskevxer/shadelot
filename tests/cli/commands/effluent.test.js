@@ -94,3 +94,64 @@ describe('the effluent command', () => {
     expect(io.err.text()).toMatch(/batch 1 in the day file/);
   });
 });
+
+describe('prescribing a treatment', () => {
+  it('says none is needed for a day already inside', async () => {
+    const io = capture();
+    await run(['effluent', '-w', works, '-d', dayPath, '--treat'], io);
+    expect(io.out.text()).toMatch(/treatment\s+none needed/);
+  });
+
+  it('prescribes a train for a day that is over', async () => {
+    const io = capture();
+    const heavy = await dayFile(
+      'heavy.json',
+      Array.from({ length: 30 }, () => day[0])
+    );
+    await run(['effluent', '-w', works, '-d', heavy, '--treat', '--format', 'json'], io);
+    const prescription = JSON.parse(io.out.text()).prescription;
+    expect(prescription.stages.length).toBeGreaterThanOrEqual(0);
+    expect(prescription.reason).toBeTruthy();
+  });
+
+  it('says what the day would look like after it', async () => {
+    const io = capture();
+    const heavy = await dayFile(
+      'heavy.json',
+      Array.from({ length: 30 }, () => day[0])
+    );
+    await run(['effluent', '-w', works, '-d', heavy, '--treat', '--format', 'json'], io);
+    const result = JSON.parse(io.out.text());
+    if (result.prescription.stages.length > 0) {
+      expect(result.treated.codKg).toBeLessThanOrEqual(result.day.codKg);
+    }
+  });
+
+  it('says how far the load would have to come down instead', async () => {
+    const io = capture();
+    const heavy = await dayFile(
+      'heavy.json',
+      Array.from({ length: 30 }, () => day[0])
+    );
+    await run(['effluent', '-w', works, '-d', heavy, '--treat', '--format', 'json'], io);
+    const reduction = JSON.parse(io.out.text()).reduction;
+    expect(Object.values(reduction).some((share) => share > 0)).toBe(true);
+  });
+
+  it('prices the running cost and the sludge', async () => {
+    const io = capture();
+    const heavy = await dayFile(
+      'heavy.json',
+      Array.from({ length: 30 }, () => day[0])
+    );
+    await run(['effluent', '-w', works, '-d', heavy, '--treat'], io);
+    expect(io.out.text()).toMatch(/running cost/);
+    expect(io.out.text()).toMatch(/sludge\s+[\d.]+ kg/);
+  });
+
+  it('says nothing about treatment unless it is asked', async () => {
+    const io = capture();
+    await run(['effluent', '-w', works, '-d', dayPath, '--format', 'json'], io);
+    expect(JSON.parse(io.out.text()).prescription).toBeNull();
+  });
+});

@@ -14,6 +14,13 @@ import {
   makeConsent,
   totalDay,
 } from '../../effluent/load.js';
+import {
+  prescribe,
+  reductionNeeded,
+  runningCost,
+  sludgeKg,
+  treat,
+} from '../../effluent/treatment.js';
 import { percent } from '../../report/format.js';
 import { respond } from '../report.js';
 import { CommandError, dataError } from '../exit.js';
@@ -36,6 +43,7 @@ export function registerEffluentCommand(program, { out }) {
     .requiredOption('-d, --day <path>', 'a file of the day batches')
     .option('--ph <reading>', 'the composite ph reading', numberFlag('--ph'))
     .option('--fixation <fraction>', 'fixation to assume', numberFlag('--fixation'), 0.75)
+    .option('--treat', 'prescribe the cheapest treatment train that gets it inside')
     .option('--format <format>', 'table or json', 'table')
     .action(async (options) => {
       const works = await loadWorks(options.works);
@@ -63,8 +71,12 @@ export function registerEffluentCommand(program, { out }) {
       const check = checkConsent(consent, day, { ph: options.ph });
 
       const breached = new Set(check.breaches.map((breach) => breach.parameter));
+      const prescription = options.treat ? prescribe(consent, day, { ph: options.ph }) : null;
+      const treated =
+        prescription && prescription.stages.length > 0 ? treat(day, prescription.stages) : null;
+      const reduction = options.treat ? reductionNeeded(consent, day) : null;
       respond(out, options.format, {
-        json: { day, ...report },
+        json: { day, ...report, prescription, treated: treated?.out ?? null, reduction },
         sections: [
           {
             table: {
@@ -87,6 +99,34 @@ export function registerEffluentCommand(program, { out }) {
               ['verdict', report.compliant ? 'inside consent' : 'breached'],
             ],
           },
+          prescription
+            ? {
+                block: [
+                  ['treatment', prescription.stages.join(' then ') || 'none needed'],
+                  ['because', prescription.reason],
+                  [
+                    'running cost',
+                    prescription.stages.length === 0
+                      ? 'nothing'
+                      : `${runningCost(day, prescription.stages).toFixed(2)} for the day`,
+                  ],
+                  ['sludge', `${sludgeKg(day, prescription.stages).toFixed(1)} kg`],
+                  [
+                    'after treatment',
+                    treated
+                      ? `colour ${treated.out.colourUnits.toFixed(1)}, cod ${treated.out.codKg.toFixed(1)} kg`
+                      : 'unchanged',
+                  ],
+                  [
+                    'or bring the load down by',
+                    Object.entries(reduction)
+                      .filter(([, share]) => share > 0)
+                      .map(([name, share]) => `${name} ${percent(share)}`)
+                      .join(', ') || 'nothing',
+                  ],
+                ],
+              }
+            : null,
         ],
       });
 
