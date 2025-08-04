@@ -16,16 +16,7 @@ import { batchLoad, totalDay } from '../../src/effluent/load.js';
 import { createChemicalStore, makeChemical } from '../../src/chemical/catalogue.js';
 import { exhaustion, fixation, wasteFraction } from '../../src/process/exhaust.js';
 import { splitVariance, reconciles } from '../../src/analysis/variance.js';
-
-function generator(seed) {
-  let state = seed >>> 0;
-  return () => {
-    state = (state * 1664525 + 1013904223) >>> 0;
-    return state / 4294967296;
-  };
-}
-
-const between = (random, low, high) => low + random() * (high - low);
+import { between, generator } from '../support/random.js';
 
 const tariff = makeTariff({
   waterPerCubicMetre: 1.42,

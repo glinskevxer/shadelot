@@ -24,20 +24,11 @@ import {
 import { deltaE, formulaNames } from '../../src/colour/deltae.js';
 import { judge, makeTolerance } from '../../src/colour/tolerance.js';
 import { kOverS } from '../../src/colour/reflectance.js';
-
-function generator(seed) {
-  let state = seed >>> 0;
-  return () => {
-    state = (state * 1664525 + 1013904223) >>> 0;
-    return state / 4294967296;
-  };
-}
+import { SEEDS, generator } from '../support/random.js';
 
 function randomLab(random) {
   return makeLab(random() * 100, random() * 200 - 100, random() * 200 - 100);
 }
-
-const SEEDS = [1, 7, 42, 1997, 20250416];
 
 describe('lab and lch', () => {
   it('round trips for every generated reading', () => {

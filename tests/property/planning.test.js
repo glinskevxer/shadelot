@@ -14,17 +14,7 @@ import { availabilityOn, commit, makeCalendar } from '../../src/machine/availabi
 import { pack, checkPacking, makeInstruction } from '../../src/order/despatch.js';
 import { changeoverCost } from '../../src/machine/changeover.js';
 import { makeMachine } from '../../src/machine/register.js';
-
-function generator(seed) {
-  let state = seed >>> 0;
-  return () => {
-    state = (state * 1664525 + 1013904223) >>> 0;
-    return state / 4294967296;
-  };
-}
-
-const between = (random, low, high) => low + random() * (high - low);
-const pick = (random, list) => list[Math.floor(random() * list.length)];
+import { between, generator, pick } from '../support/random.js';
 
 const batchesFor = (random, count) =>
   Array.from({ length: count }, (_, i) => ({

@@ -24,16 +24,7 @@ import {
 } from '../../src/process/padbatch.js';
 import { planWashOff, residueAfter, washOff } from '../../src/process/wash.js';
 import { exhaustion, fixation } from '../../src/process/exhaust.js';
-
-function generator(seed) {
-  let state = seed >>> 0;
-  return () => {
-    state = (state * 1664525 + 1013904223) >>> 0;
-    return state / 4294967296;
-  };
-}
-
-const between = (random, low, high) => low + random() * (high - low);
+import { between, generator } from '../support/random.js';
 
 describe('a dyeing profile', () => {
   it('always ends where the last segment left it', () => {
