@@ -64,6 +64,7 @@ export * as correction from './shade/correction.js';
 export * as continuity from './shade/continuity.js';
 export * as defects from './quality/defects.js';
 export * as rft from './quality/rft.js';
+export * as handle from './quality/handle.js';
 
 // what it cost
 export * as water from './utility/water.js';
