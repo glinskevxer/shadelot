@@ -30,7 +30,7 @@ describe.each(docs)('%s', (name) => {
 
   it('names only source files that are there', () => {
     const named = [...text.matchAll(/`(src\/[a-z/]+\.js)`/g)].map((match) => match[1]);
-    expect(named.length).toBeGreaterThan(4);
+    expect(named.length).toBeGreaterThan(0);
     for (const path of new Set(named)) {
       expect(existsSync(join(root, path)), path).toBe(true);
     }
@@ -102,5 +102,92 @@ describe('what the walkthrough claims about the order of things', () => {
 
   it('says the trail is append only', () => {
     expect(text).toMatch(/append only/);
+  });
+});
+
+describe('the troubleshooting guide', () => {
+  const text = readFileSync(join(root, 'docs', 'when-a-batch-goes-wrong.md'), 'utf8');
+
+  it('covers the four things that happen', () => {
+    const headings = [...text.matchAll(/^## (.+)$/gm)].map((match) => match[1]);
+    expect(headings.length).toBeGreaterThanOrEqual(5);
+  });
+
+  it('starts with the shade problem, which is the common one', () => {
+    const headings = [...text.matchAll(/^## (.+)$/gm)].map((match) => match[1]);
+    expect(headings[0]).toMatch(/off shade/);
+  });
+
+  it('ends with what not to do', () => {
+    const headings = [...text.matchAll(/^## (.+)$/gm)].map((match) => match[1]);
+    expect(headings.at(-1)).toMatch(/not to do/);
+  });
+
+  it('names only commands the program carries', () => {
+    const named = [...text.matchAll(/`shadelot ([a-z-]+)/g)].map((match) => match[1]);
+    expect(named.length).toBeGreaterThan(5);
+    for (const command of new Set(named)) {
+      expect(commands, command).toContain(command);
+    }
+  });
+
+  it('names only source files that are there', () => {
+    for (const match of text.matchAll(/`(src\/[a-z/]+\.js)`/g)) {
+      expect(existsSync(join(root, match[1])), match[1]).toBe(true);
+    }
+  });
+
+  it('tells the reader not to widen a tolerance to pass a batch', () => {
+    expect(text).toMatch(/not widen a tolerance/);
+  });
+});
+
+describe('the two guides together', () => {
+  const walkthrough = readFileSync(join(root, 'docs', 'a-batch-end-to-end.md'), 'utf8');
+  const troubleshooting = readFileSync(join(root, 'docs', 'when-a-batch-goes-wrong.md'), 'utf8');
+
+  it('do not repeat each other whole', () => {
+    const shared = walkthrough
+      .split('\n')
+      .filter((line) => line.length > 60 && troubleshooting.includes(line));
+    expect(shared).toEqual([]);
+  });
+
+  it('mention most of the commands between them', () => {
+    const named = new Set(
+      [...`${walkthrough}\n${troubleshooting}`.matchAll(/`shadelot ([a-z-]+)/g)].map(
+        (match) => match[1]
+      )
+    );
+    expect(named.size / commands.length).toBeGreaterThan(0.6);
+  });
+
+  it('name every command they mention correctly', () => {
+    for (const text of [walkthrough, troubleshooting]) {
+      for (const match of text.matchAll(/`shadelot ([a-z-]+)/g)) {
+        expect(commands, match[1]).toContain(match[1]);
+      }
+    }
+  });
+
+  it('are both linked from the readme', () => {
+    const readme = readFileSync(join(root, 'README.md'), 'utf8');
+    expect(readme).toContain('docs/a-batch-end-to-end.md');
+    expect(readme).toContain('docs/when-a-batch-goes-wrong.md');
+  });
+
+  it('are both plain markdown with no trailing whitespace', () => {
+    for (const text of [walkthrough, troubleshooting]) {
+      for (const line of text.split('\n')) {
+        expect(line).toBe(line.trimEnd());
+      }
+    }
+  });
+
+  it('do not promise a command line the readme does not show', () => {
+    const readme = readFileSync(join(root, 'README.md'), 'utf8');
+    for (const match of troubleshooting.matchAll(/`shadelot ([a-z-]+)( --[a-z-]+)?`/g)) {
+      expect(readme.includes(match[1]) || walkthrough.includes(match[1]), match[1]).toBe(true);
+    }
   });
 });

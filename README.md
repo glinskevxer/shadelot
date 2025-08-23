@@ -125,6 +125,10 @@ one has a large tank that fixes the wrong number.
 the whole program in the order the floor takes it, naming the module that does
 each piece of arithmetic and the command that prints it.
 
+[docs/when-a-batch-goes-wrong.md](docs/when-a-batch-goes-wrong.md) is the other
+half: which commands to run, in which order, for the four things that actually
+go wrong.
+
 ## Testing
 
 ```
