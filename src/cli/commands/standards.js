@@ -17,8 +17,8 @@ import {
 import { formulaNames } from '../../colour/deltae.js';
 import { signed } from '../../report/format.js';
 import { respond } from '../report.js';
-import { CommandError, dataError } from '../exit.js';
-import { numberFlag, readArray } from '../io.js';
+import { CommandError } from '../exit.js';
+import { numberFlag, readRows } from '../io.js';
 import { toReading } from '../readings.js';
 
 const COLUMNS = [
@@ -59,23 +59,18 @@ export function registerStandardsCommand(program, { out }) {
     .option('--only <state>', 'good, drifted or retired')
     .option('--format <format>', 'table or json', 'table')
     .action(async (options) => {
-      const documents = await readArray(options.standards, { what: 'standards register' });
-      if (documents.length === 0) {
-        throw dataError('the standards register is empty');
-      }
-      const standards = documents.map((document, index) => {
-        try {
-          return makeStandard({
+      const standards = await readRows(
+        options.standards,
+        (document, index) =>
+          makeStandard({
             ...document,
             readings: (document.readings ?? []).map((entry) => ({
               ...entry,
               reading: toReading(entry.reading, `standard ${document.id ?? index} reading`),
             })),
-          });
-        } catch (error) {
-          throw dataError(`standard ${index} in the register is not usable, ${error.message}`);
-        }
-      });
+          }),
+        { what: 'standards register' }
+      );
 
       const rows = standards.map((standard) => {
         const moved = drift(standard, { formula: options.formula });

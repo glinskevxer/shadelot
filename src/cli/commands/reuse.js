@@ -19,8 +19,8 @@ import { residual } from '../../utility/reuse.js';
 import { makeRecipe } from '../../recipe/recipe.js';
 import { money, percent } from '../../report/format.js';
 import { respond } from '../report.js';
-import { dataError } from '../exit.js';
-import { numberFlag, positiveFlag, readArray, readShaped } from '../io.js';
+
+import { numberFlag, positiveFlag, readRows, readShaped } from '../io.js';
 import { loadWorks } from '../works.js';
 
 const CHARGE_COLUMNS = [
@@ -91,13 +91,8 @@ export function registerReuseCommand(program, { out }) {
 
       let chain = null;
       if (options.chain) {
-        const documents = await readArray(options.chain, { what: 'chain file' });
-        const built = documents.map((document, index) => {
-          try {
-            return makeRecipe(document, works);
-          } catch (error) {
-            throw dataError(`recipe ${index} in the chain is not usable, ${error.message}`);
-          }
+        const built = await readRows(options.chain, (document) => makeRecipe(document, works), {
+          what: 'chain file',
         });
         chain = reuseChain(built, { settings });
       }

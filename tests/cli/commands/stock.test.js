@@ -85,7 +85,7 @@ describe('the stock command', () => {
       'utf8'
     );
     expect(await run(['stock', '-s', path], io)).toBe(4);
-    expect(io.err.text()).toMatch(/stock row 0 is not usable/);
+    expect(io.err.text()).toMatch(/row 0 in the stock file is not usable/);
   });
 
   it('refuses a card file with no lines', async () => {

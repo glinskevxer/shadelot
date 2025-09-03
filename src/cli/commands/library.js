@@ -14,7 +14,7 @@ import { formulaNames } from '../../colour/deltae.js';
 import { percent } from '../../report/format.js';
 import { respond } from '../report.js';
 import { dataError } from '../exit.js';
-import { numberFlag, readArray, readObject } from '../io.js';
+import { numberFlag, readArray, readObject, readRows } from '../io.js';
 import { toReading } from '../readings.js';
 import { loadWorks } from '../works.js';
 
@@ -86,13 +86,8 @@ export function registerLibraryCommand(program, { out }) {
           throw dataError('the recipe library needs the works file its dyes live in');
         }
         const works = await loadWorks(options.works);
-        const documents = await readArray(options.recipes, { what: 'recipe library' });
-        const built = documents.map((document, index) => {
-          try {
-            return makeRecipe(document, works);
-          } catch (error) {
-            throw dataError(`recipe ${index} in the library is not usable, ${error.message}`);
-          }
+        const built = await readRows(options.recipes, (document) => makeRecipe(document, works), {
+          what: 'recipe library',
         });
         const library = createLibrary(built);
         const target = built.find((recipe) => recipe.id === dips[0]?.recipeId) ?? built[0];

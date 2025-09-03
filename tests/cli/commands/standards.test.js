@@ -108,7 +108,7 @@ describe('the standards command', () => {
     const io = capture();
     const broken = await registerFile('broken.json', [{ ...register[0], readings: [] }]);
     expect(await run(['standards', '-s', broken, '--today', '2025-05-01'], io)).toBe(4);
-    expect(io.err.text()).toMatch(/standard 0 in the register is not usable/);
+    expect(io.err.text()).toMatch(/row 0 in the standards register is not usable/);
   });
 
   it('needs a date rather than reading the clock', async () => {

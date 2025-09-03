@@ -114,3 +114,26 @@ export async function readShaped(path, shape, { what } = {}) {
   }
   return document;
 }
+
+/**
+ * Read a list of rows and build each one, saying which row failed.
+ *
+ * Six commands were each doing this and each phrasing the message differently:
+ * one said "row 3", one said "entry 3" and one gave the index of the row after
+ * the bad one. The index is the one the caller counts from a text editor, which
+ * is nought, and the word is "row" everywhere.
+ */
+export async function readRows(path, build, { what = 'file', min = 1 } = {}) {
+  const rows = await readArray(path, { what });
+  if (rows.length < min) {
+    throw dataError(`the ${what} ${path} holds ${rows.length} rows, it needs at least ${min}`);
+  }
+  return rows.map((row, index) => {
+    try {
+      return build(row, index);
+    } catch (error) {
+      if (error.exitCode) throw error;
+      throw dataError(`row ${index} in the ${what} is not usable, ${error.message}`);
+    }
+  });
+}

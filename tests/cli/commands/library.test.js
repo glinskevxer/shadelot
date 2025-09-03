@@ -105,7 +105,7 @@ describe('the library command', () => {
     const bad = join(directory, 'bad.json');
     await writeFile(bad, JSON.stringify([{ id: 'R1' }]), 'utf8');
     expect(await run(['library', '-s', standard, '--recipes', bad, '-w', works], io)).toBe(4);
-    expect(io.err.text()).toMatch(/recipe 0 in the library is not usable/);
+    expect(io.err.text()).toMatch(/row 0 in the recipe library is not usable/);
   });
 
   it('scales the nearest recipe to a wanted depth', async () => {

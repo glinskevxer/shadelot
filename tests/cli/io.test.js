@@ -2,7 +2,7 @@ import { mkdtemp, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { EXIT } from '../../src/cli/exit.js';
+import { EXIT, notFoundError } from '../../src/cli/exit.js';
 import {
   collect,
   createOutput,
@@ -11,6 +11,7 @@ import {
   readArray,
   readJson,
   readObject,
+  readRows,
   readShaped,
 } from '../../src/cli/io.js';
 
@@ -165,5 +166,58 @@ describe('reading a file through its shape', () => {
     const path = join(directory, 'recipe.json');
     await writeFile(path, JSON.stringify({}), 'utf8');
     await expect(readShaped(path, 'invoice')).rejects.toThrow(/must be one of recipe/);
+  });
+});
+
+describe('reading a list of rows', () => {
+  it('builds every row and gives them all back', async () => {
+    const path = join(directory, 'rows.json');
+    await writeFile(path, JSON.stringify([{ n: 1 }, { n: 2 }]), 'utf8');
+    expect(await readRows(path, (row) => row.n * 2)).toEqual([2, 4]);
+  });
+
+  it('names the row that failed, counting from nought', async () => {
+    const path = join(directory, 'rows.json');
+    await writeFile(path, JSON.stringify([{ n: 1 }, { n: 'two' }]), 'utf8');
+    await expect(
+      readRows(
+        path,
+        (row) => {
+          if (typeof row.n !== 'number') throw new RangeError('n must be a number');
+          return row.n;
+        },
+        { what: 'counting file' }
+      )
+    ).rejects.toThrow(/row 1 in the counting file is not usable, n must be a number/);
+  });
+
+  it('says how many rows it wanted when there are not enough', async () => {
+    const path = join(directory, 'rows.json');
+    await writeFile(path, '[]', 'utf8');
+    await expect(readRows(path, (row) => row, { what: 'lots file' })).rejects.toThrow(
+      /holds 0 rows, it needs at least 1/
+    );
+  });
+
+  it('takes a list that may be empty when the caller says so', async () => {
+    const path = join(directory, 'rows.json');
+    await writeFile(path, '[]', 'utf8');
+    expect(await readRows(path, (row) => row, { min: 0 })).toEqual([]);
+  });
+
+  it('passes a command error from the builder straight through', async () => {
+    const path = join(directory, 'rows.json');
+    await writeFile(path, JSON.stringify([{}]), 'utf8');
+    await expect(
+      readRows(path, () => {
+        throw notFoundError('the thing it needed is not there');
+      })
+    ).rejects.toMatchObject({ exitCode: EXIT.notFound });
+  });
+
+  it('hands the builder the index as well as the row', async () => {
+    const path = join(directory, 'rows.json');
+    await writeFile(path, JSON.stringify([{}, {}, {}]), 'utf8');
+    expect(await readRows(path, (row, index) => index)).toEqual([0, 1, 2]);
   });
 });

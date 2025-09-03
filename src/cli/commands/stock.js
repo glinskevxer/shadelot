@@ -18,7 +18,7 @@ import {
 import { money, weight } from '../../report/format.js';
 import { respond } from '../report.js';
 import { CommandError, dataError } from '../exit.js';
-import { readArray, readObject } from '../io.js';
+import { readObject, readRows } from '../io.js';
 
 const LOT_COLUMNS = [
   { key: 'lotId', heading: 'lot' },
@@ -43,18 +43,6 @@ const NEED_COLUMNS = [
   { key: 'state', heading: 'state' },
 ];
 
-function loadStock(rows) {
-  const stock = createStock();
-  rows.forEach((row, index) => {
-    try {
-      receiveLot(stock, row);
-    } catch (error) {
-      throw dataError(`stock row ${index} is not usable, ${error.message}`);
-    }
-  });
-  return stock;
-}
-
 export function registerStockCommand(program, { out }) {
   program
     .command('stock')
@@ -65,7 +53,8 @@ export function registerStockCommand(program, { out }) {
     .option('--code <article>', 'show only this article')
     .option('--format <format>', 'table or json', 'table')
     .action(async (options) => {
-      const stock = loadStock(await readArray(options.stock, { what: 'stock file' }));
+      const stock = createStock();
+      await readRows(options.stock, (row) => receiveLot(stock, row), { what: 'stock file' });
       const lots = stock.lots.filter(
         (lot) => lot.remainingKg > 0 && (!options.code || lot.code === options.code)
       );
