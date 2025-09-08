@@ -46,6 +46,15 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+      - name: the suite is not quietly shrinking
+        run: |
+          count=$(npx vitest run --reporter=json --outputFile=/tmp/vitest.json >/dev/null 2>&1;
+            node -e "process.stdout.write(String(require('/tmp/vitest.json').numTotalTests))")
+          echo "$count tests"
+          if [ "$count" -lt 1500 ]; then
+            echo "the suite has fallen below the floor of 1500 tests" >&2
+            exit 1
+          fi
 
   coverage:
     name: coverage thresholds
@@ -76,6 +85,36 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm audit --omit=dev --audit-level=high
+
+  image:
+    name: container image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: build
+        run: docker build -t shadelot:ci .
+      - name: the entry point runs inside it
+        run: docker run --rm shadelot:ci commands
+      - name: and so do the examples it carries
+        run: |
+          docker run --rm shadelot:ci card -w examples/works.json -r examples/recipe-olive.json -l 200
+          docker run --rm shadelot:ci works -w examples/works.json
+          docker run --rm shadelot:ci sequence -d examples/day-sequence.json
+      - name: it is not running as root
+        run: |
+          user="$(docker run --rm --entrypoint id shadelot:ci -un)"
+          if [ "$user" = "root" ]; then
+            echo "the image runs as root" >&2
+            exit 1
+          fi
+          echo "runs as $user"
+      - name: the image carries no development dependency
+        run: |
+          if docker run --rm --entrypoint ls shadelot:ci /app/node_modules | grep -q '^vitest$'; then
+            echo "vitest is in the image" >&2
+            exit 1
+          fi
+          echo "no test runner in the image"
 
   release:
     name: release check

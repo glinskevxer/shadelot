@@ -117,3 +117,55 @@ describe('the source tree the image copies', () => {
     expect(readers.map((path) => path.slice(root.length + 1))).toEqual(['src/version.js']);
   });
 });
+
+describe('the workflow', () => {
+  const workflow = readFileSync(join(root, '.github', 'workflows', 'ci.yml'), 'utf8');
+
+  it('runs the tests on both node versions the manifest supports', () => {
+    expect(workflow).toMatch(/'20\.18\.2', '22\.13\.1'/);
+    expect(workflow.match(/matrix:/g).length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('builds the image and runs the entry point inside it', () => {
+    expect(workflow).toMatch(/docker build -t shadelot:ci \./);
+    expect(workflow).toMatch(/docker run --rm shadelot:ci commands/);
+  });
+
+  it('checks the image is not running as root', () => {
+    expect(workflow).toMatch(/the image runs as root/);
+  });
+
+  it('checks the test runner did not get into the image', () => {
+    expect(workflow).toMatch(/vitest is in the image/);
+  });
+
+  it('has a floor under the test count, so the suite cannot quietly shrink', () => {
+    expect(workflow).toMatch(/fallen below the floor of \d+ tests/);
+  });
+
+  it('runs every gate the check script runs', () => {
+    for (const script of ['lint', 'format:check', 'smoke', 'coverage', 'release:check']) {
+      expect(workflow, script).toContain(`npm run ${script}`);
+    }
+    expect(workflow).toMatch(/^ {6}- run: npm test$/m);
+  });
+
+  it('installs from the lock file rather than resolving fresh', () => {
+    expect(workflow).toMatch(/npm ci/);
+    expect(workflow).not.toMatch(/npm install/);
+  });
+
+  it('caches the package downloads on every job that installs', () => {
+    const installs = workflow.match(/npm ci/g).length;
+    const caches = workflow.match(/cache: npm/g).length;
+    expect(caches).toBeGreaterThanOrEqual(installs - 1);
+  });
+
+  it('cancels a superseded run rather than queueing it', () => {
+    expect(workflow).toMatch(/cancel-in-progress: true/);
+  });
+
+  it('asks for no more permission than reading the tree', () => {
+    expect(workflow).toMatch(/permissions:\n {2}contents: read/);
+  });
+});
