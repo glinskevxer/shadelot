@@ -91,6 +91,7 @@ export * as trail from './audit/trail.js';
 export * as store from './store/json.js';
 export * as repository from './store/repository.js';
 export * as backup from './store/backup.js';
+export * as csv from './store/export.js';
 export * as format from './report/format.js';
 export * as table from './report/table.js';
 export * as chart from './report/chart.js';
