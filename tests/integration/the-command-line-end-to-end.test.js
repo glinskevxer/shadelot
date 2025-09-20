@@ -197,3 +197,38 @@ describe('a job run entirely through the command line', () => {
     }
   });
 });
+
+describe('the last mile', () => {
+  it('exports the month the analyse command read', async () => {
+    const output = join(workspace, 'month.csv');
+    const exported = await json(['export', '-i', path('month-batches.json'), '-o', output]);
+    expect(exported.code).toBe(0);
+    const analysed = await json(['analyse', '-m', path('month-batches.json')]);
+    expect(exported.document.rows).toBe(analysed.document.month.batches);
+  });
+
+  it('prescribes a finish for the cloth and prints what it cost elsewhere', async () => {
+    const finished = await json(['finish', '-c', path('cloth-panel.json'), '--handle', '3.5']);
+    expect(finished.code).toBe(0);
+    const rubWet = finished.document.rows.find((row) => row.axis === 'rubWet');
+    expect(rubWet.change).toBeLessThan(0);
+  });
+
+  it('runs every command in the listing without one of them crashing', async () => {
+    const listing = await json(['commands']);
+    expect(listing.document.length).toBeGreaterThan(20);
+    for (const entry of listing.document) {
+      const io = capture();
+      const code = await run([entry.command, '--help'], io);
+      expect(code, entry.command).toBe(0);
+    }
+  });
+
+  it('leaves the temporary workspace with only the files it wrote', async () => {
+    const { readdir } = await import('node:fs/promises');
+    const written = await readdir(workspace);
+    expect(written).toContain('works.json');
+    expect(written).toContain('month.csv');
+    expect(written.some((name) => name.endsWith('.tmp'))).toBe(false);
+  });
+});

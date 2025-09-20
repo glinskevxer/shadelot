@@ -59,6 +59,17 @@ check "despatch" node bin/shadelot.js despatch -r examples/finished-rolls.json -
 check "loadout" node bin/shadelot.js loadout -w examples/works.json -g examples/lots.json
 check "reuse" node bin/shadelot.js reuse -w examples/works.json --previous examples/recipe-olive.json --next examples/recipe-olive-deep.json
 expect_code "standards flags a drifted one" 5 node bin/shadelot.js standards -s examples/standards.json --today 2025-05-01
+check "finish" node bin/shadelot.js finish -c examples/cloth-panel.json --handle 3.5
+
+echo "smoke: export writes a file for the accounts"
+outdir="$(mktemp -d)"
+check "export" node bin/shadelot.js export -i examples/month-batches.json -o "$outdir/batches.csv"
+expect_code "export will not write over one" 4 node bin/shadelot.js export -i examples/month-batches.json -o "$outdir/batches.csv"
+if [ "$(wc -l < "$outdir/batches.csv")" -lt 40 ]; then
+  fail "the export came out short"
+else
+  echo "  ok    the export has the rows in it"
+fi
 
 echo "smoke: init writes a works every command will take"
 starter="$(mktemp -d)/works.json"

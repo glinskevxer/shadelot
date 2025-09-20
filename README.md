@@ -37,6 +37,7 @@ node bin/shadelot.js analyse -m examples/month-batches.json --hours 480
 node bin/shadelot.js library -s examples/standard-olive.json --dips examples/dip-library.json
 node bin/shadelot.js reuse -w examples/works.json --previous examples/recipe-olive.json --next examples/recipe-olive-deep.json
 node bin/shadelot.js standards -s examples/standards.json --today 2025-05-01 --limit 20
+node bin/shadelot.js finish -c examples/cloth-panel.json --handle 3.5
 node bin/shadelot.js works -w examples/works.json
 ```
 
@@ -114,6 +115,10 @@ the works weight them.
 **A bath can be reused going darker inside one family, and only then.** It
 carries the last shade forward, so `shadelot reuse` prints the saving next to the
 verdict: a refusal with no number against it gets overruled at eleven at night.
+
+**An export defuses the cells a spreadsheet would run.** A shade name starting
+with an equals sign is a formula to a spreadsheet and text to everybody else, so
+`shadelot export` prefixes it. That one is a security hole rather than a mess.
 
 **Treatment is prescribed from what is actually over.** Coagulation drops the
 colour, biological treatment drops the demand, and a works that buys the wrong

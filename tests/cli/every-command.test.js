@@ -164,3 +164,62 @@ describe('what a command may and may not do', () => {
     }
   );
 });
+
+describe('the commands that write a file', () => {
+  const writers = commands.filter((command) =>
+    command.options.some((flags) => flags.includes('--output'))
+  );
+
+  it('is a short list, because most of them only read', () => {
+    expect(writers.length).toBeLessThan(4);
+    expect(writers.map((command) => command.command)).toContain('export');
+  });
+
+  it('never writes over a file without being told to', async () => {
+    const { mkdtemp, writeFile } = await import('node:fs/promises');
+    const { tmpdir } = await import('node:os');
+    const { join } = await import('node:path');
+    const directory = await mkdtemp(join(tmpdir(), 'shadelot-writers-'));
+    const target = join(directory, 'already-there.json');
+    await writeFile(target, '{"kept":true}', 'utf8');
+
+    for (const command of ['init']) {
+      const io = capture();
+      const code = await run([command, '-w', target], io);
+      expect(code, command).toBe(4);
+      const { readFile } = await import('node:fs/promises');
+      expect(await readFile(target, 'utf8')).toBe('{"kept":true}');
+    }
+  });
+
+  it('says which file it wrote when it wrote one', async () => {
+    const { mkdtemp } = await import('node:fs/promises');
+    const { tmpdir } = await import('node:os');
+    const { join } = await import('node:path');
+    const directory = await mkdtemp(join(tmpdir(), 'shadelot-writers-'));
+    const target = join(directory, 'fresh.json');
+    const io = capture();
+    expect(await run(['init', '-w', target], io)).toBe(0);
+    expect(io.out.text()).toContain(target);
+  });
+});
+
+describe('the descriptions as a whole', () => {
+  it('are all different', () => {
+    const descriptions = commands.map((row) => row.description);
+    expect(new Set(descriptions).size).toBe(descriptions.length);
+  });
+
+  it('read as a sentence rather than a noun', () => {
+    for (const command of commands) {
+      expect(command.description, command.command).toMatch(/\s/);
+      expect(command.description.split(' ').length).toBeGreaterThan(3);
+    }
+  });
+
+  it('never mention a flag, which belongs in the help', () => {
+    for (const command of commands) {
+      expect(command.description, command.command).not.toMatch(/--/);
+    }
+  });
+});
