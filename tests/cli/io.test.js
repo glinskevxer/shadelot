@@ -1,4 +1,4 @@
-import { mkdtemp, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -11,7 +11,9 @@ import {
   readArray,
   readJson,
   readObject,
+  pathExists,
   readRows,
+  refuseOverwrite,
   readShaped,
 } from '../../src/cli/io.js';
 
@@ -219,5 +221,62 @@ describe('reading a list of rows', () => {
     const path = join(directory, 'rows.json');
     await writeFile(path, JSON.stringify([{}, {}, {}]), 'utf8');
     expect(await readRows(path, (row, index) => index)).toEqual([0, 1, 2]);
+  });
+});
+
+describe('whether a path is there', () => {
+  it('says so for a file that is', async () => {
+    const path = join(directory, 'here.json');
+    await writeFile(path, '{}', 'utf8');
+    expect(await pathExists(path)).toBe(true);
+  });
+
+  it('says so for one that is not', async () => {
+    expect(await pathExists(join(directory, 'nope.json'))).toBe(false);
+  });
+
+  it('says so for a directory', async () => {
+    expect(await pathExists(directory)).toBe(true);
+  });
+});
+
+describe('refusing to write over a file', () => {
+  it('lets a fresh path through', async () => {
+    await expect(refuseOverwrite(join(directory, 'fresh.json'), false)).resolves.toBeUndefined();
+  });
+
+  it('stops one that is already there and names the flag', async () => {
+    const path = join(directory, 'there.json');
+    await writeFile(path, '{}', 'utf8');
+    await expect(refuseOverwrite(path, false)).rejects.toThrow(
+      /is already there, pass --overwrite to replace it/
+    );
+  });
+
+  it('lets it through when the caller said to', async () => {
+    const path = join(directory, 'there.json');
+    await writeFile(path, '{}', 'utf8');
+    await expect(refuseOverwrite(path, true)).resolves.toBeUndefined();
+  });
+
+  it('names another flag when the command has one', async () => {
+    const path = join(directory, 'there.json');
+    await writeFile(path, '{}', 'utf8');
+    await expect(refuseOverwrite(path, false, { flag: '--force' })).rejects.toThrow(/pass --force/);
+  });
+
+  it('leaves with the invalid data code', async () => {
+    const path = join(directory, 'there.json');
+    await writeFile(path, '{}', 'utf8');
+    await expect(refuseOverwrite(path, false)).rejects.toMatchObject({
+      exitCode: EXIT.invalidData,
+    });
+  });
+
+  it('checks before it writes, never after', async () => {
+    const path = join(directory, 'there.json');
+    await writeFile(path, 'kept', 'utf8');
+    await refuseOverwrite(path, false).catch(() => {});
+    expect(await readFile(path, 'utf8')).toBe('kept');
   });
 });

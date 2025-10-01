@@ -80,7 +80,7 @@ describe('the init command', () => {
     await writeFile(path, '{}', 'utf8');
     const io = capture();
     expect(await run(['init', '-w', path], io)).toBe(4);
-    expect(io.err.text()).toMatch(/will not write over a works file/);
+    expect(io.err.text()).toMatch(/is already there, pass --works with another path/);
     expect(await readFile(path, 'utf8')).toBe('{}');
   });
 

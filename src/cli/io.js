@@ -7,9 +7,9 @@
  * malformed one, or one that holds the wrong shape.
  */
 
-import { readFile } from 'node:fs/promises';
+import { access, readFile } from 'node:fs/promises';
 import { checkShape, fieldsFor } from '../valid/schema.js';
-import { dataError, notFoundError } from './exit.js';
+import { CommandError, dataError, notFoundError } from './exit.js';
 
 export async function readJson(path, { what = 'file' } = {}) {
   let text;
@@ -136,4 +136,31 @@ export async function readRows(path, build, { what = 'file', min = 1 } = {}) {
       throw dataError(`row ${index} in the ${what} is not usable, ${error.message}`);
     }
   });
+}
+
+/**
+ * Whether a path is there. Two commands had a copy of this and both swallowed
+ * every error, so a permission problem read as "not there" and the command went
+ * on to write into a directory it could not write into.
+ */
+export async function pathExists(path) {
+  try {
+    await access(path);
+    return true;
+  } catch (error) {
+    if (error.code === 'ENOENT') return false;
+    throw error;
+  }
+}
+
+/**
+ * Refuse to write over a file unless the caller said to. Both commands that
+ * write phrased this differently and only one of them named the flag that would
+ * let it through, which is the only part of the message anybody needs.
+ */
+export async function refuseOverwrite(path, allowed, { flag = '--overwrite' } = {}) {
+  if (allowed) return;
+  if (await pathExists(path)) {
+    throw new CommandError(`${path} is already there, pass ${flag} to replace it`, 'invalidData');
+  }
 }

@@ -7,20 +7,10 @@
  * that silently replaces last month's is how a month goes missing.
  */
 
-import { writeFile, access } from 'node:fs/promises';
+import { writeFile } from 'node:fs/promises';
 import { columnsFor, exportNames, toDelimited } from '../../store/export.js';
 import { respond } from '../report.js';
-import { CommandError } from '../exit.js';
-import { readArray } from '../io.js';
-
-async function exists(path) {
-  try {
-    await access(path);
-    return true;
-  } catch {
-    return false;
-  }
-}
+import { readArray, refuseOverwrite } from '../io.js';
 
 export function registerExportCommand(program, { out }) {
   program
@@ -36,12 +26,7 @@ export function registerExportCommand(program, { out }) {
     .action(async (options) => {
       const columns = columnsFor(options.set);
       const rows = await readArray(options.input, { what: 'input file' });
-      if (!options.overwrite && (await exists(options.output))) {
-        throw new CommandError(
-          `${options.output} is already there, pass --overwrite to replace it`,
-          'invalidData'
-        );
-      }
+      await refuseOverwrite(options.output, options.overwrite);
       const text = toDelimited(columns, rows, {
         format: options.delimited,
         header: options.header,

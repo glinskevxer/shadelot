@@ -11,14 +11,14 @@
  */
 
 import { writeFile } from 'node:fs/promises';
-import { access } from 'node:fs/promises';
 import { CLASSES } from '../../dyestuff/catalogue.js';
 import { MACHINE_TYPES } from '../../machine/register.js';
 import { ROLES } from '../../chemical/catalogue.js';
 import { assembleWorks } from '../works.js';
 import { checkShape, fieldsFor } from '../../valid/schema.js';
 import { respond } from '../report.js';
-import { CommandError, dataError } from '../exit.js';
+import { dataError } from '../exit.js';
+import { refuseOverwrite } from '../io.js';
 
 /** The smallest works file that every command will accept. */
 export function starterWorks({ name = 'a works with no name yet' } = {}) {
@@ -102,15 +102,6 @@ export function starterWorks({ name = 'a works with no name yet' } = {}) {
   };
 }
 
-async function exists(path) {
-  try {
-    await access(path);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 export function registerInitCommand(program, { out }) {
   program
     .command('init')
@@ -119,12 +110,7 @@ export function registerInitCommand(program, { out }) {
     .option('--name <name>', 'the name of the works')
     .option('--format <format>', 'table or json', 'table')
     .action(async (options) => {
-      if (await exists(options.works)) {
-        throw new CommandError(
-          `${options.works} is already there, and this command will not write over a works file`,
-          'invalidData'
-        );
-      }
+      await refuseOverwrite(options.works, false, { flag: '--works with another path' });
       const document = starterWorks({ name: options.name });
       const problems = checkShape(document, fieldsFor('works'), { what: 'starter works' });
       if (problems.length > 0) {
