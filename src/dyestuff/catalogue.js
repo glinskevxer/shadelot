@@ -18,7 +18,7 @@ import {
   optional,
 } from '../valid/guards.js';
 
-export const CLASSES = ['reactive', 'disperse', 'acid', 'direct', 'vat', 'basic'];
+export const CLASSES = Object.freeze(['reactive', 'disperse', 'acid', 'direct', 'vat', 'basic']);
 
 /** Which fibres each class will actually colour to a commercial standard. */
 export const CLASS_FIBRES = Object.freeze({
@@ -30,7 +30,7 @@ export const CLASS_FIBRES = Object.freeze({
   basic: ['acrylic'],
 });
 
-export const FASTNESS_TESTS = ['wash', 'light', 'rubDry', 'rubWet', 'perspiration'];
+export const FASTNESS_TESTS = Object.freeze(['wash', 'light', 'rubDry', 'rubWet', 'perspiration']);
 
 function normaliseFastness(input) {
   const out = {};

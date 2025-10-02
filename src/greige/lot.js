@@ -17,7 +17,7 @@ import {
 } from '../valid/guards.js';
 
 /** The fields that must agree across a lot before anything else is considered. */
-export const BINDING_FIELDS = ['quality', 'construction', 'widthCm'];
+export const BINDING_FIELDS = Object.freeze(['quality', 'construction', 'widthCm']);
 
 function blendKey(blend) {
   return Object.keys(blend)

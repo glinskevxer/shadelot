@@ -29,7 +29,7 @@ export function strengthFactor(fromStrength, toStrength) {
   return fromStrength / toStrength;
 }
 
-export const CONFIDENCE = ['direct', 'lab-check', 'unsuitable'];
+export const CONFIDENCE = Object.freeze(['direct', 'lab-check', 'unsuitable']);
 
 /**
  * Grade a proposed substitution. The rules read in order and the first one that

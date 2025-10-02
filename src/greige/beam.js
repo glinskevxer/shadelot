@@ -44,7 +44,7 @@ export function provenance(rolls) {
   };
 }
 
-export const RISKS = ['none', 'watch', 'high', 'unknown'];
+export const RISKS = Object.freeze(['none', 'watch', 'high', 'unknown']);
 
 /**
  * The barre risk a lot carries. Unrecorded provenance is its own answer and not

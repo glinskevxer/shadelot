@@ -35,7 +35,7 @@ export function bandFor(measure) {
   return band;
 }
 
-export const VERDICTS = ['best', 'good', 'typical', 'behind', 'poor'];
+export const VERDICTS = Object.freeze(['best', 'good', 'typical', 'behind', 'poor']);
 
 /**
  * Where a value sits in its band, as a fraction from poor at nought to best at

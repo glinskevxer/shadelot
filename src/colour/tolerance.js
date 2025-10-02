@@ -21,7 +21,7 @@ import {
 import { lchDifference } from './lab.js';
 import { deltaE, formulaNames } from './deltae.js';
 
-export const VERDICTS = ['pass', 'marginal', 'fail'];
+export const VERDICTS = Object.freeze(['pass', 'marginal', 'fail']);
 
 export function makeTolerance(input) {
   const name = requireText(input.name, 'tolerance.name', { maxLength: 60 });

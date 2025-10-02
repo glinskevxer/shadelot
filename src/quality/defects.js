@@ -19,12 +19,20 @@ import {
   optional,
 } from '../valid/guards.js';
 
-export const CAUSES = ['weaving', 'knitting', 'yarn', 'dyeing', 'finishing', 'handling', 'unknown'];
+export const CAUSES = Object.freeze([
+  'weaving',
+  'knitting',
+  'yarn',
+  'dyeing',
+  'finishing',
+  'handling',
+  'unknown',
+]);
 
 /** The causes a commission dyehouse carries the cost of. */
 export const OURS = Object.freeze(['dyeing', 'finishing', 'handling']);
 
-export const FAULT_KINDS = [
+export const FAULT_KINDS = Object.freeze([
   'barre',
   'crease',
   'stain',
@@ -33,7 +41,7 @@ export const FAULT_KINDS = [
   'slub',
   'oil-mark',
   'listing',
-];
+]);
 
 /** The four point system. Length in centimetres decides the points. */
 export function pointsFor(lengthCm) {

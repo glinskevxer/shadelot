@@ -17,7 +17,14 @@ import {
   optional,
 } from '../valid/guards.js';
 
-export const MACHINE_TYPES = ['jet', 'winch', 'jig', 'beam', 'package', 'pad-mangle'];
+export const MACHINE_TYPES = Object.freeze([
+  'jet',
+  'winch',
+  'jig',
+  'beam',
+  'package',
+  'pad-mangle',
+]);
 
 /** Which processes each machine type can actually run. */
 export const TYPE_PROCESSES = Object.freeze({

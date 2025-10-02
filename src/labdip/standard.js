@@ -21,7 +21,7 @@ import {
 } from '../valid/guards.js';
 import { deltaE, formulaNames } from '../colour/deltae.js';
 
-export const SOURCES = ['customer', 'works', 'pantone', 'previous-bulk'];
+export const SOURCES = Object.freeze(['customer', 'works', 'pantone', 'previous-bulk']);
 
 export function makeStandard(input) {
   const readings = requireArray(input.readings, 'standard.readings', { min: 1 }).map((reading) => ({

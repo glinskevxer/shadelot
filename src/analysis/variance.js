@@ -13,7 +13,7 @@
 
 import { requireArray, requireNonNegative, requirePositive } from '../valid/guards.js';
 
-export const VARIANCE_ORDER = ['volume', 'mix', 'price', 'rate'];
+export const VARIANCE_ORDER = Object.freeze(['volume', 'mix', 'price', 'rate']);
 
 function totals(rows) {
   return rows.reduce(

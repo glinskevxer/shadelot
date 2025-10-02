@@ -19,7 +19,7 @@ import {
   optional,
 } from '../valid/guards.js';
 
-export const ORDER_STATES = ['open', 'part-delivered', 'delivered', 'cancelled'];
+export const ORDER_STATES = Object.freeze(['open', 'part-delivered', 'delivered', 'cancelled']);
 
 export function makeOrder(input) {
   const id = requireText(input.id, 'order.id', { maxLength: 24 });

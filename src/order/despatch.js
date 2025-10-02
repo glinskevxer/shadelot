@@ -20,7 +20,12 @@ import {
   optional,
 } from '../valid/guards.js';
 
-export const RULES = ['one-shade-per-bale', 'fixed-metres', 'machine-order', 'fill-to-weight'];
+export const RULES = Object.freeze([
+  'one-shade-per-bale',
+  'fixed-metres',
+  'machine-order',
+  'fill-to-weight',
+]);
 
 export function makeInstruction(input) {
   const rule = requireOneOf(input.rule, 'instruction.rule', RULES);

@@ -13,7 +13,7 @@
 import { FieldError, requireOneOf, requirePositive } from '../valid/guards.js';
 import { deltaE, formulaNames } from './deltae.js';
 
-export const ILLUMINANTS = ['D65', 'TL84', 'A'];
+export const ILLUMINANTS = Object.freeze(['D65', 'TL84', 'A']);
 
 export const ILLUMINANT_NAMES = Object.freeze({
   D65: 'average north daylight',

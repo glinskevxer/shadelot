@@ -21,7 +21,7 @@ import {
   optional,
 } from '../valid/guards.js';
 
-export const SEGMENT_KINDS = ['ramp', 'hold', 'dose', 'drain', 'fill'];
+export const SEGMENT_KINDS = Object.freeze(['ramp', 'hold', 'dose', 'drain', 'fill']);
 
 export const AMBIENT = 20;
 

@@ -17,7 +17,7 @@ import {
 } from '../valid/guards.js';
 import { rollDryMass } from '../measure/fabric.js';
 
-export const FIBRES = [
+export const FIBRES = Object.freeze([
   'cotton',
   'viscose',
   'polyester',
@@ -25,9 +25,9 @@ export const FIBRES = [
   'wool',
   'acrylic',
   'elastane',
-];
+]);
 
-export const CONSTRUCTIONS = ['woven', 'weft-knit', 'warp-knit', 'yarn'];
+export const CONSTRUCTIONS = Object.freeze(['woven', 'weft-knit', 'warp-knit', 'yarn']);
 
 /**
  * Blends are given as whole percentages that must total a hundred. A blend

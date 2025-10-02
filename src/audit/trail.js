@@ -12,7 +12,7 @@
 
 import { FieldError, requireArray, requireOneOf, requireText, optional } from '../valid/guards.js';
 
-export const EVENTS = [
+export const EVENTS = Object.freeze([
   'lot-formed',
   'batch-planned',
   'recipe-redosed',
@@ -21,7 +21,7 @@ export const EVENTS = [
   'correction-decided',
   'batch-delivered',
   'stock-issued',
-];
+]);
 
 export function createTrail({ clock = () => new Date().toISOString() } = {}) {
   return { entries: [], clock };

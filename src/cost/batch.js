@@ -10,7 +10,14 @@
 
 import { FieldError, requireNonNegative, requirePositive, optional } from '../valid/guards.js';
 
-export const COST_HEADS = ['dyestuff', 'chemical', 'water', 'energy', 'labour', 'overhead'];
+export const COST_HEADS = Object.freeze([
+  'dyestuff',
+  'chemical',
+  'water',
+  'energy',
+  'labour',
+  'overhead',
+]);
 
 export function makeTariff(input) {
   return Object.freeze({

@@ -20,7 +20,7 @@ import {
   optional,
 } from '../valid/guards.js';
 
-export const PARAMETERS = ['volume', 'cod', 'tds', 'colour', 'ph'];
+export const PARAMETERS = Object.freeze(['volume', 'cod', 'tds', 'colour', 'ph']);
 
 export function makeConsent(input) {
   const name = requireText(input.name, 'consent.name', { maxLength: 60 });

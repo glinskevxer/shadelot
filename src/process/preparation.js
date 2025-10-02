@@ -19,7 +19,7 @@ import {
   optional,
 } from '../valid/guards.js';
 
-export const ROUTES = ['scour-only', 'scour-bleach', 'bleach-only', 'bio-scour'];
+export const ROUTES = Object.freeze(['scour-only', 'scour-bleach', 'bleach-only', 'bio-scour']);
 
 /** What each route takes off, as a share of the impurity it starts with. */
 export const REMOVAL = Object.freeze({

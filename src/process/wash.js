@@ -19,7 +19,7 @@ import {
   optional,
 } from '../valid/guards.js';
 
-export const BATH_KINDS = ['cold-rinse', 'warm-rinse', 'soap', 'neutralise'];
+export const BATH_KINDS = Object.freeze(['cold-rinse', 'warm-rinse', 'soap', 'neutralise']);
 
 /** Share of the loose dye each kind of bath takes off, measured on this floor. */
 export const EFFICIENCY = Object.freeze({

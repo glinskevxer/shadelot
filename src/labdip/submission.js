@@ -17,7 +17,7 @@ import {
 } from '../valid/guards.js';
 import { judge } from '../colour/tolerance.js';
 
-export const OUTCOMES = ['pending', 'approved', 'rejected', 'withdrawn'];
+export const OUTCOMES = Object.freeze(['pending', 'approved', 'rejected', 'withdrawn']);
 
 export function makeSubmission(input) {
   const id = requireText(input.id, 'submission.id', { maxLength: 24 });

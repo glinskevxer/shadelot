@@ -16,7 +16,7 @@ import { FieldError, requireInRange, requirePositive, optional } from '../valid/
 import { lchDifference } from '../colour/lab.js';
 import { colourStrength } from '../colour/reflectance.js';
 
-export const ACTIONS = ['accept', 'add-on', 'strip-and-redye', 'downgrade'];
+export const ACTIONS = Object.freeze(['accept', 'add-on', 'strip-and-redye', 'downgrade']);
 
 export const DEFAULT_LIMITS = Object.freeze({
   hueLimit: 0.6,

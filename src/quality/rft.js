@@ -12,7 +12,7 @@
 
 import { FieldError, requireArray, requireOneOf, requirePositive } from '../valid/guards.js';
 
-export const OUTCOMES = ['first-time', 'corrected', 'downgraded', 'scrapped'];
+export const OUTCOMES = Object.freeze(['first-time', 'corrected', 'downgraded', 'scrapped']);
 
 /** How a batch counts, from what actually happened to it. */
 export function classify(batch) {

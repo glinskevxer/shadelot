@@ -20,7 +20,7 @@ import {
 } from '../valid/guards.js';
 import { shadeFamily } from '../recipe/recipe.js';
 
-export const VERDICTS = ['reuse', 'reuse-with-correction', 'drop'];
+export const VERDICTS = Object.freeze(['reuse', 'reuse-with-correction', 'drop']);
 
 export const DEFAULTS = Object.freeze({
   maximumReuses: 3,

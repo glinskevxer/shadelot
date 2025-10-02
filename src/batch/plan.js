@@ -19,7 +19,7 @@ import { bathVolume, liquorRatioAt } from '../machine/register.js';
 import { buildCard } from '../recipe/card.js';
 import { append } from '../audit/trail.js';
 
-export const FIT_REASONS = ['below-minimum', 'above-maximum', 'wrong-process', 'ok'];
+export const FIT_REASONS = Object.freeze(['below-minimum', 'above-maximum', 'wrong-process', 'ok']);
 
 /** Whether a load can go on a machine at all, and why not when it cannot. */
 export function assessFit(machine, recipe, fibreKg) {

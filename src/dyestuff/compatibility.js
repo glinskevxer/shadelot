@@ -64,7 +64,7 @@ export function separation(a, b) {
   return strike * 0.5 + migration * 0.35 + salt * 0.15;
 }
 
-export const GRADES = ['good', 'workable', 'poor'];
+export const GRADES = Object.freeze(['good', 'workable', 'poor']);
 
 export function gradeSeparation(value) {
   if (value <= 0.12) return 'good';

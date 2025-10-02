@@ -17,7 +17,7 @@ import {
   optional,
 } from '../valid/guards.js';
 
-export const RINSE_KINDS = ['drop-and-fill', 'overflow'];
+export const RINSE_KINDS = Object.freeze(['drop-and-fill', 'overflow']);
 
 export function makeRinse(input) {
   const kind = requireOneOf(input.kind, 'rinse.kind', RINSE_KINDS);

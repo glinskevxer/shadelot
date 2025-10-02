@@ -17,12 +17,12 @@ import {
   optional,
 } from '../valid/guards.js';
 
-export const STABILITY = ['stable', 'slow-decay', 'splits'];
+export const STABILITY = Object.freeze(['stable', 'slow-decay', 'splits']);
 
 /** Percent of strength lost per month at works temperature, by stability class. */
 export const DECAY_PER_MONTH = Object.freeze({ stable: 0, 'slow-decay': 0.6, splits: 0 });
 
-export const STATES = ['good', 'watch', 'retest', 'scrap'];
+export const STATES = Object.freeze(['good', 'watch', 'retest', 'scrap']);
 
 export function makeShelfEntry(input) {
   return Object.freeze({

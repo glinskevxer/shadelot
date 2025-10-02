@@ -20,7 +20,13 @@ import {
   optional,
 } from '../valid/guards.js';
 
-export const SOFTENERS = ['none', 'cationic', 'silicone', 'macro-silicone', 'hydrophilic'];
+export const SOFTENERS = Object.freeze([
+  'none',
+  'cationic',
+  'silicone',
+  'macro-silicone',
+  'hydrophilic',
+]);
 
 /** What each softener does per percent on weight, on the works panel scale. */
 export const EFFECTS = Object.freeze({

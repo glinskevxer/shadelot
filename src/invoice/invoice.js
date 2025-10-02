@@ -21,7 +21,13 @@ import {
 } from '../valid/guards.js';
 import { bandNames } from '../recipe/depth.js';
 
-export const SURCHARGES = ['small-lot', 'rush', 'special-finish', 're-dye', 'sampling'];
+export const SURCHARGES = Object.freeze([
+  'small-lot',
+  'rush',
+  'special-finish',
+  're-dye',
+  'sampling',
+]);
 
 export function makeRateCard(input) {
   const perBand = {};

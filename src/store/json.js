@@ -18,7 +18,14 @@ import { FieldError, requireInteger, requireText } from '../valid/guards.js';
 
 export const SCHEMA_VERSION = 1;
 
-export const COLLECTIONS = ['rolls', 'lots', 'recipes', 'batches', 'submissions', 'stockLots'];
+export const COLLECTIONS = Object.freeze([
+  'rolls',
+  'lots',
+  'recipes',
+  'batches',
+  'submissions',
+  'stockLots',
+]);
 
 export function emptyDocument() {
   const collections = Object.fromEntries(COLLECTIONS.map((name) => [name, []]));

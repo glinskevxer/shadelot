@@ -13,7 +13,15 @@
 
 import { FieldError } from './guards.js';
 
-export const TYPES = ['string', 'number', 'positive', 'boolean', 'array', 'object', 'reading'];
+export const TYPES = Object.freeze([
+  'string',
+  'number',
+  'positive',
+  'boolean',
+  'array',
+  'object',
+  'reading',
+]);
 
 function isReading(value) {
   return (

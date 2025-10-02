@@ -9,7 +9,14 @@
 
 import { FieldError, requireArray, requireText } from '../valid/guards.js';
 
-export const STATES = ['received', 'allocated', 'in-process', 'dyed', 'shipped', 'returned'];
+export const STATES = Object.freeze([
+  'received',
+  'allocated',
+  'in-process',
+  'dyed',
+  'shipped',
+  'returned',
+]);
 
 const ALLOWED = Object.freeze({
   received: ['allocated', 'returned'],

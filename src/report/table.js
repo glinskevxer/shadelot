@@ -17,7 +17,7 @@ import {
 } from '../valid/guards.js';
 import { clip } from './format.js';
 
-export const ALIGNMENTS = ['left', 'right'];
+export const ALIGNMENTS = Object.freeze(['left', 'right']);
 
 export function makeColumn(input) {
   const key = typeof input.key === 'string' ? input.key : null;
@@ -100,7 +100,7 @@ export function renderJson(columnSpecs, rows) {
   );
 }
 
-export const FORMATS = ['table', 'json'];
+export const FORMATS = Object.freeze(['table', 'json']);
 
 export function render(format, columns, rows, options) {
   requireOneOf(format, 'format', FORMATS);

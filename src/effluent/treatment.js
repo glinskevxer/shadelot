@@ -21,7 +21,7 @@ import {
 } from '../valid/guards.js';
 import { LIMITS, checkConsent } from './load.js';
 
-export const STAGES = ['neutralise', 'coagulate', 'biological', 'polish'];
+export const STAGES = Object.freeze(['neutralise', 'coagulate', 'biological', 'polish']);
 
 /** What each stage takes off, as a share, measured on this works' own plant. */
 export const REMOVAL = Object.freeze({

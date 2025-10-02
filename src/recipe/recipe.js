@@ -19,7 +19,7 @@ import { find } from '../dyestuff/catalogue.js';
 import { findChemical } from '../chemical/catalogue.js';
 import { depthBand } from './depth.js';
 
-export const PROCESSES = ['exhaust', 'pad-batch', 'pad-steam', 'jig', 'package'];
+export const PROCESSES = Object.freeze(['exhaust', 'pad-batch', 'pad-steam', 'jig', 'package']);
 
 function normaliseDyes(input, catalogue) {
   const dyes = requireArray(input, 'recipe.dyes', { min: 1 });

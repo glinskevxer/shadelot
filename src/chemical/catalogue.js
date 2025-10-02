@@ -16,9 +16,9 @@ import {
   optional,
 } from '../valid/guards.js';
 
-export const DOSE_BASIS = ['owf', 'gpl'];
+export const DOSE_BASIS = Object.freeze(['owf', 'gpl']);
 
-export const ROLES = [
+export const ROLES = Object.freeze([
   'salt',
   'alkali',
   'acid',
@@ -30,7 +30,7 @@ export const ROLES = [
   'softener',
   'oxidising',
   'reducing',
-];
+]);
 
 /** Roles whose dose is set by the depth of shade rather than by the recipe author. */
 export const DEPTH_DRIVEN = Object.freeze(['salt', 'alkali']);
