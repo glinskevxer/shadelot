@@ -60,6 +60,7 @@ check "loadout" node bin/shadelot.js loadout -w examples/works.json -g examples/
 check "reuse" node bin/shadelot.js reuse -w examples/works.json --previous examples/recipe-olive.json --next examples/recipe-olive-deep.json
 expect_code "standards flags a drifted one" 5 node bin/shadelot.js standards -s examples/standards.json --today 2025-05-01
 check "finish" node bin/shadelot.js finish -c examples/cloth-panel.json --handle 3.5
+check "doctor" node bin/shadelot.js doctor -w examples/works.json -r examples/recipe-olive.json -s examples/stock.json
 
 echo "smoke: export writes a file for the accounts"
 outdir="$(mktemp -d)"

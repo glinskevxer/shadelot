@@ -13,6 +13,7 @@ import { registerCorrectCommand } from './correct.js';
 import { registerCostCommand } from './cost.js';
 import { registerDespatchCommand } from './despatch.js';
 import { registerDipCommand } from './dip.js';
+import { registerDoctorCommand } from './doctor.js';
 import { registerEffluentCommand } from './effluent.js';
 import { registerExportCommand } from './export.js';
 import { registerFinishCommand } from './finish.js';
@@ -39,6 +40,7 @@ const REGISTRARS = [
   registerCorrectCommand,
   registerCostCommand,
   registerDespatchCommand,
+  registerDoctorCommand,
   registerDipCommand,
   registerEffluentCommand,
   registerExportCommand,
