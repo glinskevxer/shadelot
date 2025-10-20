@@ -145,7 +145,10 @@ go wrong.
 npm run check
 ```
 
-runs lint, the format check, the whole suite and the smoke test. The smoke test
+runs lint, the format check, the whole suite, the smoke test and the release
+check. `npm run audit` is separate because it needs the network: it fails on an
+advisory in the production tree and says so loudly when it could not reach the
+registry, rather than treating an outage as a clean bill of health. The smoke test
 drives the shipped binary rather than importing the source, because everything
 else imports the source and would not notice a broken entry point.
 

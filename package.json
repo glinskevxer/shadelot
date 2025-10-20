@@ -28,6 +28,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "smoke": "bash scripts/smoke.sh",
+    "audit": "bash scripts/audit-check.sh",
     "coverage": "vitest run --coverage",
     "check": "npm run lint && npm run format:check && npm test && npm run smoke && npm run release:check",
     "release:check": "bash scripts/release-check.sh"
